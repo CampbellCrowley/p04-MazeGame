@@ -10,8 +10,8 @@
 using namespace std;
 
 // Global vars
-unsigned int width = 0;
-unsigned int height = 0;
+int width = 0;
+int height = 0;
 MazeController mc;
 
 // Prototypes
@@ -43,7 +43,7 @@ int main() {
     cout << "Please select an option:\n";
     cout << "1) Easy/Small\n";
     cout << "2) Medium\n";
-    cout << "3) Hard/Large\b";
+    cout << "3) Hard/Large\n";
     cout << "4) Custom size\n";
     cout << "5) Load File\n";
     getline(cin, option);
@@ -91,10 +91,6 @@ int main() {
       break;
   }
 
-  cout << "ONE\n";
-  if (generateMaze) mc.generate(rows, cols);
-  cout << "TWO\n";
-
   // Handle execution interrupt.
   struct sigaction sigIntHandler;
   sigIntHandler.sa_handler = interruptHandler;
@@ -118,10 +114,13 @@ int main() {
   init_pair(MazeController::TileSymbolsColor::END, COLOR_RED, COLOR_BLACK);
   init_pair(MazeController::TileSymbolsColor::CURRENT, COLOR_MAGENTA, COLOR_BLACK);
   init_pair(MazeController::TileSymbolsColor::PREVIOUS, COLOR_BLUE, COLOR_BLACK);
-  init_pair(MazeController::TileSymbolsColor::UNKNOWN, COLOR_BLACK, COLOR_BLACK);
+  init_pair(MazeController::TileSymbolsColor::UNKNOWN, COLOR_RED, COLOR_BLACK);
 
   // Get starting screensize
   getmaxyx(stdscr, height, width);
+  mc.print(height, width);
+
+  if (generateMaze) mc.generate(rows, cols);
 
   // Play game
   Direction nextDirection = NONE;

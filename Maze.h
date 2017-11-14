@@ -13,14 +13,7 @@ enum TileData {
   UNKNOWN = '\0',
   FRONTIER = 'T'
 };
-enum Direction {
-  UP = 'U',
-  DOWN = 'D',
-  LEFT = 'L',
-  RIGHT = 'R',
-  NONE = 'N',
-  EXIT = 'E'
-};
+enum Direction { UP, DOWN, LEFT, RIGHT, NONE, EXIT };
 typedef std::vector<std::vector<TileData> > Maze;
 
 class MazeController {
@@ -33,7 +26,7 @@ class MazeController {
   // dimensions.
   void generate(unsigned int rows, unsigned int cols);
   // Prints maze to screen.
-  void print(unsigned int cols, unsigned int rows) const;
+  void print(int cols = 0, int rows = 0);
   // If the player is in the maze exit.
   bool isComplete() const;
   // Move the player in a direction. Returns if the player actually moved.
@@ -47,8 +40,8 @@ class MazeController {
   static void setColor(const TileData &input);
 
   // Maze dimensions
-  unsigned int width() const { return (maze.size() > 0 ? maze[0].size() : 0); }
   unsigned int height() const { return maze.size(); }
+  unsigned int width() const { return (height() > 0 ? maze[0].size() : 0); }
 
   // Symbols that are shown on the screen. Different from TileData to allow for
   // color or different symbols than those used in the files.
@@ -73,6 +66,11 @@ class MazeController {
     static const unsigned char UNKNOWN;
   };
 
+ protected:
+  bool isEmpty(TileData &tile) {
+    return (tile == EMPTY || tile == START || tile == END || tile == PREVIOUS);
+  }
+
  private:
   // Current coordinates of player from top left of grid.
   unsigned int current_x, current_y;
@@ -83,6 +81,8 @@ class MazeController {
                        std::vector<std::vector<int> > &input);
   void mergeNeighborAndFrontier(std::vector<int> frontier,
                                 std::vector<int> neighbor);
+  unsigned int lastCols;
+  unsigned int lastRows;
 
 };  // class MazeController
 

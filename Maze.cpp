@@ -1,8 +1,10 @@
 #include "Maze.h"
 #include <curses.h>
-#include <fstream>
-#include <ctime>
 #include <cstdlib>
+#include <ctime>
+#include <fstream>
+#include <iostream>
+#include <unistd.h>
 
 const char MazeController::TileSymbols::EMPTY = ' ';
 const char MazeController::TileSymbols::WALL = '#';
@@ -10,7 +12,7 @@ const char MazeController::TileSymbols::START = '@';
 const char MazeController::TileSymbols::END = '!';
 const char MazeController::TileSymbols::CURRENT = '^';
 const char MazeController::TileSymbols::PREVIOUS = '.';
-const char MazeController::TileSymbols::UNKNOWN = '\0';
+const char MazeController::TileSymbols::UNKNOWN = 'E';
 const unsigned char MazeController::TileSymbolsColor::EMPTY = 0;
 const unsigned char MazeController::TileSymbolsColor::WALL = 1;
 const unsigned char MazeController::TileSymbolsColor::START = 2;
@@ -45,19 +47,27 @@ bool MazeController::import(const char *filename) {
   }
 }
 
-void MazeController::print(unsigned int cols, unsigned int rows) const {
-  unsigned int start_x = 0;
-  unsigned int start_y = 0;
-  if (height() > cols) {
-    start_x = current_x + cols / 2;
+void MazeController::print(int cols, int rows) {
+  if (cols <= 0) cols = lastCols;
+  if (rows <= 0) rows = lastRows;
+  lastCols = cols;
+  lastRows = rows;
+  int start_x = 0;
+  int start_y = 0;
+  if (height() > (unsigned)cols) {
+    start_x = current_x - cols / 2;
+    if (start_x < 0) start_x = 0;
   }
-  if (width() > rows) {
-    start_y = current_y + rows / 2;
+  if (width() > (unsigned)rows) {
+    start_y = current_y - rows / 2;
+    if (start_y < 0) start_y = 0;
   }
 
   wmove(stdscr, 0, 0);
-  for (unsigned int i = start_y; i < rows && i < height(); ++i) {
-    for (unsigned int j = start_x; j < cols && j < width(); ++j) {
+  for (unsigned int i = start_y; i - start_y < (unsigned)rows && i < height();
+       ++i) {
+    for (unsigned int j = start_x; j - start_x < (unsigned)cols && j < width();
+         ++j) {
       if (i == current_y && j == current_x) {
         setColor(CURRENT);
         waddch(stdscr, tileToSymbol(CURRENT));
@@ -69,6 +79,7 @@ void MazeController::print(unsigned int cols, unsigned int rows) const {
     waddch(stdscr, '\n');
   }
   if (has_colors()) wattron(stdscr, A_NORMAL);
+  mvprintw(2, 300, "%dx%d", cols, rows);
   wrefresh(stdscr);
 }
 
@@ -154,6 +165,8 @@ char MazeController::tileToSymbol(const TileData &input) {
       return TileSymbols::CURRENT;
     case PREVIOUS:
       return TileSymbols::PREVIOUS;
+    case FRONTIER:
+      return FRONTIER;
     default:
       return TileSymbols::UNKNOWN;
   }
@@ -193,12 +206,14 @@ void MazeController::generate(unsigned int rows, unsigned int cols) {
   srand(time(NULL));
 
   const unsigned int start = rand() % cols;
-  maze[start][0] = START;
+  maze[0][start] = START;
+  current_x = start;
+  current_y = 0;
   std::vector<std::vector<int> > frontierTiles;
   {
     std::vector<int> coord = std::vector<int>(2);
-    coord[0] = start;
-    coord[1] = 0;
+    coord[0] = 0;
+    coord[1] = start;
     addFontierCells(coord, frontierTiles);
   }
 
@@ -206,23 +221,30 @@ void MazeController::generate(unsigned int rows, unsigned int cols) {
     int selectedFrontierCell = rand() % frontierTiles.size();
     std::vector<int> selectedNeighborCell =
         pickRandomNeighbor(frontierTiles[selectedFrontierCell]);
-    mergeNeighborAndFrontier(frontierTiles[selectedFrontierCell],
-                             selectedNeighborCell);
-    addFontierCells(frontierTiles[selectedFrontierCell], frontierTiles);
+    if (!selectedNeighborCell.empty()) {
+      mergeNeighborAndFrontier(frontierTiles[selectedFrontierCell],
+                               selectedNeighborCell);
+      addFontierCells(frontierTiles[selectedFrontierCell], frontierTiles);
+    }
     frontierTiles.erase(frontierTiles.begin() + selectedFrontierCell);
+    print();
   }
-  for (unsigned int i = 0; i < width(); ++i) {
-    for (unsigned int j = 0; j < height(); ++j) {
+  for (unsigned int i = 0; i < height(); ++i) {
+    for (unsigned int j = 0; j < width(); ++j) {
       if (maze[i][j] == UNKNOWN) {
         maze[i][j] = WALL;
       }
     }
   }
-  while(true) {
-    int end = rand() % cols;
-    if (maze[end][rows - 1] == EMPTY) {
-      maze[end][rows-1] = END;
-      break;
+  bool endDetermined = false;
+  for (int j = rows - 1; j >= 0 && !endDetermined; --j) {
+    for (unsigned int i = 0; i < cols; ++i) {
+      int end = rand() % cols;
+      if (maze[j][end] == EMPTY) {
+        maze[j][end] = END;
+        endDetermined = true;
+        break;
+      }
     }
   }
 }
@@ -230,38 +252,54 @@ void MazeController::generate(unsigned int rows, unsigned int cols) {
 std::vector<int> MazeController::pickRandomNeighbor(
     std::vector<int> coords) const {
   std::vector<int> selection;
-  while (selection.size() == 0) {
+  bool left = false, right = false, up = false, down = false;
+  TileData mazeCoord;
+  while (selection.size() == 0 && (!up || !down || !left || !right)) {
     int direction = rand() % 4;
     switch(direction) {
-      case 1: // LEFT
-        if (coords[0] - 2 >= 0 && maze[coords[0] - 2][coords[1]] == UNKNOWN) {
-          selection.push_back(coords[0] - 2);
-          selection.push_back(coords[1]);
-          return selection;
+      case 0: // UP
+        if (!up && coords[0] - 2 >= 0) {
+          mazeCoord = maze[coords[0] - 2][coords[1]];
+          if (mazeCoord == EMPTY || mazeCoord == START || mazeCoord == END) {
+            selection.push_back(coords[0] - 2);
+            selection.push_back(coords[1]);
+            return selection;
+          }
         }
+        up = true;
+        break;
+      case 1: // DOWN
+        if (!down && (unsigned int)coords[0] + 2 < height()) {
+          mazeCoord = maze[coords[0] + 2][coords[1]];
+          if (mazeCoord == EMPTY || mazeCoord == START || mazeCoord == END) {
+            selection.push_back(coords[0] + 2);
+            selection.push_back(coords[1]);
+            return selection;
+          }
+        }
+        down = true;
         break;
       case 2: // RIGHT
-        if ((unsigned int)coords[0] + 2 < width() &&
-            maze[coords[0] + 2][coords[1]] == UNKNOWN) {
-          selection.push_back(coords[0] + 2);
-          selection.push_back(coords[1]);
-          return selection;
+        if (!right && (unsigned int)coords[1] + 2 < width()) {
+          mazeCoord = maze[coords[0]][coords[1] + 2];
+          if (mazeCoord == EMPTY || mazeCoord == START || mazeCoord == END) {
+            selection.push_back(coords[0]);
+            selection.push_back(coords[1] + 2);
+            return selection;
+          }
         }
+        right = true;
         break;
-      case 3: // DOWN
-        if ((unsigned int)coords[1] + 2 < height() &&
-            maze[coords[0]][coords[1] + 2] == UNKNOWN) {
-          selection.push_back(coords[0]);
-          selection.push_back(coords[1] + 2);
-          return selection;
+      case 3: // LEFT
+        if (!left && coords[1] - 2 >= 0) {
+          mazeCoord = maze[coords[0]][coords[1] - 2];
+          if (mazeCoord == EMPTY || mazeCoord == START || mazeCoord == END) {
+            selection.push_back(coords[0]);
+            selection.push_back(coords[1] - 2);
+            return selection;
+          }
         }
-        break;
-      case 4: // UP
-        if (coords[1] - 2 >= 0 && maze[coords[0]][coords[1] - 2] == UNKNOWN) {
-          selection.push_back(coords[0]);
-          selection.push_back(coords[1] - 2);
-          return selection;
-        }
+        left = true;
         break;
     }
   }
@@ -300,24 +338,32 @@ void MazeController::addFontierCells(const std::vector<int> coords,
 
 void MazeController::mergeNeighborAndFrontier(std::vector<int> frontier,
                                               std::vector<int> neighbor) {
-  if (frontier[0] == neighbor[0]) {
+  if (neighbor[0] == frontier[0]) {
     if (neighbor[1] > frontier[1]) {
-      for (int i = 0; i < neighbor[1] - frontier[1]; ++i) {
-        maze[frontier[0]][frontier[1] + i] = EMPTY;
+      for (int i = 0; i <= neighbor[1] - frontier[1]; ++i) {
+        if (!isEmpty(maze[frontier[0]][frontier[1] + i])) {
+          maze[frontier[0]][frontier[1] + i] = EMPTY;
+        }
       }
     } else {
-      for (int i = 0; i > neighbor[1] - frontier[1]; ++i) {
-        maze[frontier[0]][frontier[1] + i] = EMPTY;
+      for (int i = 0; i >= neighbor[1] - frontier[1]; --i) {
+        if (!isEmpty(maze[frontier[0]][frontier[1] + i])) {
+          maze[frontier[0]][frontier[1] + i] = EMPTY;
+        }
       }
     }
-  } else if (frontier[1] == neighbor[1]) {
-    if (frontier[0] > neighbor[0]) {
-      for (int i = 0; i < neighbor[0] - frontier[0]; ++i) {
-        maze[frontier[0] + i][frontier[1]] = EMPTY;
+  } else if (neighbor[1] == frontier[1]) {
+    if (neighbor[0] > frontier[0]) {
+      for (int i = 0; i <= neighbor[0] - frontier[0]; ++i) {
+        if (!isEmpty(maze[frontier[0] + i][frontier[1]])) {
+          maze[frontier[0] + i][frontier[1]] = EMPTY;
+        }
       }
     } else {
-      for (int i = 0; i > neighbor[0] - frontier[0]; ++i) {
-        maze[frontier[0] + i][frontier[1]] = EMPTY;
+      for (int i = 0; i >= neighbor[0] - frontier[0]; --i) {
+        if (!isEmpty(maze[frontier[0] + i][frontier[1]])) {
+          maze[frontier[0] + i][frontier[1]] = EMPTY;
+        }
       }
     }
   }
