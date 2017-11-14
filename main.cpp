@@ -2,6 +2,7 @@
 // Example: "g++ -lncurses main.cpp"
 #include <curses.h>
 #include <signal.h>
+#include <sys/stat.h>
 #include <cstdlib>
 #include <iostream>
 #include "CampbellLib/CampbellLib.h"
@@ -34,37 +35,82 @@ Direction getMoveDirection();
 
 // Definitions
 // Called before app exits in order to properly release terminal from NCurses.
-void ExitApp() {
+void ExitApp(bool force = false) {
   endwin();
+  if (!force) {
+    mc.save("lastsession.dat");
+    bool tryAgain = true;
+    do {
+      cout << Campbell::Color::yellow
+           << "Would you like to save the game? (Y/n): "
+           << Campbell::Color::reset;
+      if (Campbell::Strings::getYesNo(true)) {
+        cout << Campbell::Color::yellow
+             << "Please enter the name of the file you would like to save to: "
+             << Campbell::Color::reset;
+        string filename;
+        getline(cin, filename);
+        cout << Campbell::Color::green << "Saving game...\r"
+             << Campbell::Color::reset << flush;
+        if (mc.save(filename.c_str())) {
+          cout << Campbell::Color::green << "Game successfull saved.\n"
+               << Campbell::Color::reset;
+          tryAgain = false;
+        } else {
+          cout << Campbell::Color::red << "Game failed to saved.\n"
+               << Campbell::Color::reset;
+        }
+      } else {
+        cout << Campbell::Color::red << "Not saving.\n"
+             << Campbell::Color::reset;
+        tryAgain = false;
+      }
+    } while (tryAgain);
+  }
   exit(0);
 }
 // Catches Ctrl+C in order to call ExitApp properly.
 void interruptHandler(int s) {
   (void)s;
-  ExitApp();
+  ExitApp(true);
 }
 // Entry
 int main() {
-  cout << title;
-  cout << "Controls:\n";
+  cout << Campbell::Color::cyan << title;
+  cout << Campbell::Color::yellow << "Controls:\n";
   cout << "UP: \u2191 or K\n";
   cout << "DOWN: \u2193 or J\n";
   cout << "LEFT: \u2191 or H\n";
   cout << "RIGHT: \u2192 or L\n";
-  cout << "QUIT: Q\n";
+  cout << "QUIT: Q\n" << Campbell::Color::reset;
+  struct stat buf;
+  bool loadLastSession = false;
+  if (stat("lastsession.dat", &buf) != -1) {
+    cout
+        << Campbell::Color::yellow
+        << "I found a previous session data. Would you like to load it? (Y/n): "
+        << Campbell::Color::reset;
+    loadLastSession = Campbell::Strings::getYesNo(true);
+  }
   string option = "";
   int selection = 0;
-  do {
-    cout << "Please select an option:\n";
-    cout << "1) Easy/Small\n";
-    cout << "2) Medium\n";
-    cout << "3) Hard/Large\n";
-    cout << "4) Custom size\n";
-    cout << "5) Load File\n";
-    getline(cin, option);
-    selection = Campbell::Strings::toNumber(option.c_str());
-  } while (!Campbell::Strings::isNumber(option.c_str()) || selection < 1 ||
-           selection > 5);
+  if (!loadLastSession) {
+    do {
+      cout << "Please select an option:\n";
+      cout << "1) Easy/Small\n";
+      cout << "2) Medium\n";
+      cout << "3) Hard/Large\n";
+      cout << "4) Custom size\n";
+      cout << "5) Load File\n";
+      cout << "6) Quit Game\n";
+      getline(cin, option);
+      selection = Campbell::Strings::toNumber(option.c_str());
+    } while (!Campbell::Strings::isNumber(option.c_str()) || selection < 1 ||
+             selection > 6);
+  } else {
+    selection = 5;
+    option = "lastsession.dat";
+  }
   bool generateMaze = true;
   int rows = 0;
   int cols = 0;
@@ -97,12 +143,22 @@ int main() {
       break;
     case 5:
       generateMaze = false;
-      string filename = "";
-      // TODO: Give better feedback.
-      do {
-        cout << "Enter a filename to load: ";
-        getline(cin, filename);
-      } while (!mc.import(filename.c_str()));
+      while (true) {
+        if (!loadLastSession) {
+          cout << "Enter a filename to load: ";
+          getline(cin, option);
+        }
+        if (!mc.import (option.c_str())) {
+          cout << Campbell::Color::red << "Failed to open file.\n"
+               << Campbell::Color::reset;
+        } else {
+          break;
+        }
+        loadLastSession = false;
+      }
+      break;
+    case 6:
+      ExitApp();
       break;
   }
 
@@ -151,7 +207,8 @@ int main() {
     lastHeight = height;
   }
 
-  ExitApp();
+  remove("lastsession.dat");
+  ExitApp(mc.isComplete());
   return 0;
 }  // int main()
 

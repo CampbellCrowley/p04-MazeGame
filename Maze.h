@@ -22,6 +22,8 @@ class MazeController {
 
   // Loads new maze from file. Returns if this succeeded.
   bool import(const char* filename);
+  // Saves current maze to file. Returns if this succeeded.
+  bool save(const char* filename);
   // Generates a maze using a Randomized Prim's Algorithm of the given
   // dimensions.
   void generate(unsigned int rows, unsigned int cols);

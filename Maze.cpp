@@ -25,17 +25,43 @@ bool MazeController::import(const char *filename) {
     std::string line;
     maze.clear();
     wmove(stdscr, 20, 0);
+    bool hasCurrent = false;
     while (getline(file, line)) {
       if (line[0] == '#' || line[0] / sizeof(line) == 0) continue;
       maze.resize(height() + 1);
       for (int i = 0; i < (int)line.size(); ++i) {
         TileData newTile = charToTile(line[i]);
-        maze[height() - 1].push_back(newTile);
-        if (newTile == START) {
+        if (!hasCurrent && newTile == START) {
           current_x = i;
           current_y = height() - 1;
+        } else if (newTile == CURRENT) {
+          current_x = i;
+          current_y = height() - 1;
+          newTile = EMPTY;
+        }
+        maze[height() - 1].push_back(newTile);
+      }
+    }
+    file.close();
+    return true;
+  } else {
+    file.close();
+    return false;
+  }
+}
+bool MazeController::save(const char *filename) {
+  std::fstream file(filename, std::ios::out | std::ios::trunc);
+  if (!file.fail()) {
+    file << "# This file was created automatically by Maze Master.\n";
+    for (unsigned int i = 0; i < maze.size(); ++i) {
+      for (unsigned int j = 0; j < maze[i].size(); ++j) {
+        if (maze[i][j] == EMPTY && i == current_y && j == current_x) {
+          file << (char)CURRENT;
+        } else {
+          file << (char)maze[i][j];
         }
       }
+      file << '\n';
     }
     file.close();
     return true;
@@ -66,6 +92,9 @@ void MazeController::print(int cols, int rows) {
   wmove(stdscr, 0, 0);
   for (unsigned int i = start_y; i - start_y < (unsigned)rows -1&& i < height();
        ++i) {
+    setColor(WALL);
+    waddch(stdscr, tileToSymbol(WALL));
+    unsetColor(WALL);
     for (unsigned int j = start_x; j - start_x < (unsigned)cols-1 && j < width();
          ++j) {
       if (i == current_y && j == current_x) {
@@ -78,9 +107,13 @@ void MazeController::print(int cols, int rows) {
         unsetColor(maze[i][j]);
       }
     }
+    setColor(WALL);
+    waddch(stdscr, tileToSymbol(WALL));
+    unsetColor(WALL);
     waddch(stdscr, '\n');
   }
   if (has_colors()) wattron(stdscr, A_NORMAL);
+  ::move(0, 0);
   wrefresh(stdscr);
 }
 
