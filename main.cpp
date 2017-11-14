@@ -1,79 +1,108 @@
+// MUST COMPILE WITH "-lncurses" flag!
+// Example: "g++ -lncurses main.cpp"
 #include <curses.h>
 #include <signal.h>
-#include <sys/ioctl.h>
-#include <unistd.h>
-#include <iostream>
-#include <vector>
 #include "CampbellLib/CampbellLib.h"
 #include "Maze.h"
 
 using namespace std;
 
-// Global Vars
-struct winsize size;
+// Global vars
+unsigned int width = 0;
+unsigned int height = 0;
+MazeController mc;
 
 // Prototypes
 Direction getMoveDirection();
-void OnExit(int s) {
+
+// Definitions
+// Called before app exits in order to properly release terminal from NCurses.
+void ExitApp() {
   endwin();
-  cout << s << endl;
+  printf("ENDWIN\n");
   exit(0);
 }
-
+// Catches Ctrl+C in order to call ExitApp properly.
+void interruptHandler(int s) {
+  (void)s;
+  ExitApp();
+}
+// Reprints maze if it doesn't fit in screen anymore.
+void resizeHandler(int sig) {
+  (void)sig;
+  getmaxyx(stdscr, height, width);
+  mc.print(height, width);
+}
 // Entry
 int main() {
-  ioctl(STDOUT_FILENO, TIOCGWINSZ, &size);
-
   // Handle execution interrupt.
   struct sigaction sigIntHandler;
-  sigIntHandler.sa_handler = OnExit;
+  sigIntHandler.sa_handler = interruptHandler;
   sigemptyset(&sigIntHandler.sa_mask);
   sigIntHandler.sa_flags = 0;
   sigaction(SIGINT, &sigIntHandler, NULL);
 
-  // Handle keyboard inputs.
+  // Handle window resize
+  signal(SIGWINCH, &resizeHandler);
+
+  // Handle NCurses.
   initscr();
   cbreak();
   noecho();
   keypad(stdscr, TRUE);
+  // Colors
+  start_color();
+  init_pair(MazeController::TileSymbolsColor::EMPTY, COLOR_BLACK, COLOR_BLACK);
+  init_pair(MazeController::TileSymbolsColor::WALL, COLOR_WHITE, COLOR_BLACK);
+  init_pair(MazeController::TileSymbolsColor::START, COLOR_GREEN, COLOR_BLACK);
+  init_pair(MazeController::TileSymbolsColor::END, COLOR_RED, COLOR_BLACK);
+  init_pair(MazeController::TileSymbolsColor::CURRENT, COLOR_MAGENTA, COLOR_BLACK);
+  init_pair(MazeController::TileSymbolsColor::PREVIOUS, COLOR_BLUE, COLOR_BLACK);
+  init_pair(MazeController::TileSymbolsColor::UNKNOWN, COLOR_BLACK, COLOR_BLACK);
 
-  cout << "Width: " << size.ws_col << " Height: " << size.ws_row << endl;
+  // Get starting screensize
+  getmaxyx(stdscr, height, width);
 
-  MazeController mc;
   mc.import("maze1.dat");
-  cout << "Width: " << mc.width() << " Height: " << mc.height() << endl;
 
+  // Play game
   Direction nextDirection = NONE;
   while (!mc.isComplete() && nextDirection != EXIT) {
-    mc.print(size.ws_col, size.ws_row);
+    mc.print(height, width);
     nextDirection = getMoveDirection();
     mc.move(nextDirection);
   }
 
+  ExitApp();
   return 0;
 }  // int main()
 
 Direction getMoveDirection() {
-  int input;
-  while ((input = getch()) == ERR) {
-    switch(input) {
-      case KEY_DOWN:
-      case 'J':
-        return DOWN;
-      case KEY_UP:
-      case 'K':
-        return UP;
-      case KEY_LEFT:
-      case 'H':
-        return LEFT;
-      case KEY_RIGHT:
-      case 'L':
-        return RIGHT;
-      case 'Q':
-        return EXIT;
-      default:
-        return NONE;
-    }
+  wchar_t input;
+  while ((input = getch()) == ERR) {}
+  mvwprintw(stdscr, 20, 0, "Input: %c ", input);
+  switch (input) {
+    case KEY_DOWN:
+    case 'J':
+    case 'j':
+      return DOWN;
+    case KEY_UP:
+    case 'K':
+    case 'k':
+      return UP;
+    case KEY_LEFT:
+    case 'H':
+    case 'h':
+      return LEFT;
+    case KEY_RIGHT:
+    case 'L':
+    case 'l':
+      return RIGHT;
+    case 'Q':
+    case 'q':
+      return EXIT;
+    default:
+      return NONE;
   }
   return NONE;
 }

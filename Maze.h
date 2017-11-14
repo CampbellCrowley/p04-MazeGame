@@ -1,9 +1,6 @@
 #ifndef MAZE_H
 #define MAZE_H
-#include <string>
 #include <vector>
-#include "CampbellLib/CampbellLib.h"
-using namespace Campbell::Color;
 
 // Data that defines the maze and the characters to read from a file.
 enum TileData {
@@ -15,23 +12,19 @@ enum TileData {
   PREVIOUS = '.',
   UNKNOWN = '\0'
 };
-enum Direction { UP, DOWN, LEFT, RIGHT, NONE, EXIT };
+enum Direction {
+  UP = 'U',
+  DOWN = 'D',
+  LEFT = 'L',
+  RIGHT = 'R',
+  NONE = 'N',
+  EXIT = 'E'
+};
 typedef std::vector<std::vector<TileData> > Maze;
 
 class MazeController {
  public:
-  MazeController() {
-    TileSymbols::EMPTY = TileSymbolsColor::EMPTY + TileSymbols::EMPTY + reset;
-    TileSymbols::WALL = TileSymbolsColor::WALL + TileSymbols::WALL + reset;
-    TileSymbols::START = TileSymbolsColor::START + TileSymbols::START + reset;
-    TileSymbols::END = TileSymbolsColor::END + TileSymbols::END + reset;
-    TileSymbols::CURRENT =
-        TileSymbolsColor::CURRENT + TileSymbols::CURRENT + reset;
-    TileSymbols::PREVIOUS =
-        TileSymbolsColor::PREVIOUS + TileSymbols::PREVIOUS + reset;
-    TileSymbols::UNKNOWN =
-        TileSymbolsColor::UNKNOWN + TileSymbols::UNKNOWN + reset;
-  }
+  MazeController() {}
 
   // Loads new maze from file. Returns if this succeeded.
   bool import(const char* filename);
@@ -41,32 +34,38 @@ class MazeController {
   bool isComplete() const;
   // Move the player in a direction. Returns if the player actually moved.
   bool move(Direction dir);
+  // Converts a character to known TileData.
+  static TileData charToTile(const char input);
+  // Converts a TileData to symbol to display.
+  static char tileToSymbol(const TileData &input);
+  // Converts a TileData to color.
+  static void setColor(const TileData &input);
 
   // Maze dimensions
-  unsigned int width() const { return maze.size() > 0 ? maze[0].size() : 0; }
+  unsigned int width() const { return (maze.size() > 0 ? maze[0].size() : 0); }
   unsigned int height() const { return maze.size(); }
 
   // Symbols that are shown on the screen. Different from TileData to allow for
   // color or different symbols than those used in the files.
   class TileSymbols {
    public:
-    static std::string EMPTY;
-    static std::string WALL;
-    static std::string START;
-    static std::string END;
-    static std::string CURRENT;
-    static std::string PREVIOUS;
-    static std::string UNKNOWN;
+    static const char EMPTY;
+    static const char WALL;
+    static const char START;
+    static const char END;
+    static const char CURRENT;
+    static const char PREVIOUS;
+    static const char UNKNOWN;
   };
   class TileSymbolsColor {
    public:
-    static const char *EMPTY;
-    static const char *WALL;
-    static const char *START;
-    static const char *END;
-    static const char *CURRENT;
-    static const char *PREVIOUS;
-    static const char *UNKNOWN;
+    static const unsigned char EMPTY;
+    static const unsigned char WALL;
+    static const unsigned char START;
+    static const unsigned char END;
+    static const unsigned char CURRENT;
+    static const unsigned char PREVIOUS;
+    static const unsigned char UNKNOWN;
   };
 
  private:
@@ -74,10 +73,6 @@ class MazeController {
   unsigned int current_x, current_y;
   // The loaded maze.
   Maze maze;
-  // Converts a character to known TileData.
-  TileData charToTile(const char input) const;
-  // Converts a TileData to symbol to display.
-  const std::string tileToSymbol(const TileData &input) const;
 
 };  // class MazeController
 

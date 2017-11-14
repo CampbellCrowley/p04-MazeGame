@@ -1,47 +1,36 @@
 #include "Maze.h"
+#include <curses.h>
 #include <fstream>
-#include <iostream>
-#include "CampbellLib/CampbellLib.h"
 
-using namespace Campbell::Color;
-std::string MazeController::TileSymbols::EMPTY = " ";
-std::string MazeController::TileSymbols::WALL = "#";
-std::string MazeController::TileSymbols::START = "@";
-std::string MazeController::TileSymbols::END = "!";
-std::string MazeController::TileSymbols::CURRENT = "^";
-std::string MazeController::TileSymbols::PREVIOUS = ".";
-std::string MazeController::TileSymbols::UNKNOWN = "\0";
-const char *MazeController::TileSymbolsColor::EMPTY = black;
-const char *MazeController::TileSymbolsColor::WALL = white;
-const char *MazeController::TileSymbolsColor::START = blue;
-const char *MazeController::TileSymbolsColor::END = red;
-const char *MazeController::TileSymbolsColor::CURRENT = green;
-const char *MazeController::TileSymbolsColor::PREVIOUS = blue;
-const char *MazeController::TileSymbolsColor::UNKNOWN = black;
+const char MazeController::TileSymbols::EMPTY = ' ';
+const char MazeController::TileSymbols::WALL = '#';
+const char MazeController::TileSymbols::START = '@';
+const char MazeController::TileSymbols::END = '!';
+const char MazeController::TileSymbols::CURRENT = '^';
+const char MazeController::TileSymbols::PREVIOUS = '.';
+const char MazeController::TileSymbols::UNKNOWN = '\0';
+const unsigned char MazeController::TileSymbolsColor::EMPTY = 0;
+const unsigned char MazeController::TileSymbolsColor::WALL = 1;
+const unsigned char MazeController::TileSymbolsColor::START = 2;
+const unsigned char MazeController::TileSymbolsColor::END = 3;
+const unsigned char MazeController::TileSymbolsColor::CURRENT = 4;
+const unsigned char MazeController::TileSymbolsColor::PREVIOUS = 5;
+const unsigned char MazeController::TileSymbolsColor::UNKNOWN = 6;
 
 bool MazeController::import(const char *filename) {
-  // TODO: Open the file...
   std::fstream file(filename, std::ios::in);
   if (!file.fail()) {
     std::string line;
     maze.clear();
-    bool firstStart = true;
     while(file >> line) {
-      maze.resize(maze.size() + 1);
+      maze.resize(height() + 1);
       for (int i = 0; i < (int)line.size(); ++i) {
         TileData newTile = charToTile(line[i]);
-        maze[maze.size() - 1].push_back(newTile);
+        maze[height() - 1].push_back(newTile);
         if (newTile == START) {
-          if (!firstStart) {
-            std::cerr << red
-                      << "There are multiple starting locations. There may "
-                         "be only one!"
-                      << reset << std::endl;
-          } else {
-            current_x = maze.size() - 1;
-            current_y = maze[0].size() - 1;
-            firstStart = false;
-          }
+          current_x = i;
+          current_y = height() - 1;
+          mvwprintw(stdscr, 21, 0, "Start: X: %d, Y: %d\n", current_x, current_y);
         }
       }
     }
@@ -56,42 +45,48 @@ bool MazeController::import(const char *filename) {
 void MazeController::print(unsigned int cols, unsigned int rows) const {
   unsigned int start_x = 0;
   unsigned int start_y = 0;
-  if (maze.size() > cols) {
+  if (height() > cols) {
     start_x = current_x + cols / 2;
   }
-  if (maze[0].size() > rows) {
+  if (width() > rows) {
     start_y = current_y + rows / 2;
   }
 
-  for (unsigned int i = start_y; i < rows && i < maze.size(); ++i) {
-    for (unsigned int j = start_x; j < cols && j < maze[i].size(); ++j) {
-      if (i - start_y == current_y && j - start_x == current_x) {
-        std::cout << tileToSymbol(CURRENT);
+  wmove(stdscr, 0, 0);
+  for (unsigned int i = start_y; i < rows && i < height(); ++i) {
+    for (unsigned int j = start_x; j < cols && j < width(); ++j) {
+      if (i == current_y && j == current_x) {
+        setColor(CURRENT);
+        waddch(stdscr, tileToSymbol(CURRENT));
       } else {
-        std::cout << tileToSymbol(maze[i][j]);
+        setColor(maze[i][j]);
+        waddch(stdscr, tileToSymbol(maze[i][j]));
       }
     }
-    std::cout << std::endl;
+    waddch(stdscr, '\n');
   }
+  if (has_colors()) wattron(stdscr, A_NORMAL);
+  wrefresh(stdscr);
+  mvwprintw(stdscr, 22, 0, "Now: X: %d, Y: %d\n", current_x, current_y);
 }
 
 bool MazeController::isComplete() const {
-  return maze[current_x][current_y] == END;
+  if (current_x >= width() || current_y >= height()) return false;
+  return maze[current_y][current_x] == END;
 }
 
 bool MazeController::move(Direction dir) {
   switch(dir) {
     // TODO: Check if able to move in direction first.
-    case UP:
-      if (current_y >= maze.size() - 1 ||
-          maze[current_y + 1][current_x] == WALL) {
+    case DOWN:
+      if (current_y >= height() - 1 || maze[current_y + 1][current_x] == WALL) {
         return false;
       } else {
         maze[current_y][current_x] = PREVIOUS;
         current_y++;
         return true;
       }
-    case DOWN:
+    case UP:
       if (current_y <= 0 || maze[current_y - 1][current_x] == WALL) {
         return false;
       } else {
@@ -108,8 +103,7 @@ bool MazeController::move(Direction dir) {
         return true;
       }
     case RIGHT:
-      if (current_x >= maze[current_y].size() - 1 ||
-          maze[current_y][current_x - 1] == WALL) {
+      if (current_x >= width() - 1 || maze[current_y][current_x + 1] == WALL) {
         return false;
       } else {
         maze[current_y][current_x] = PREVIOUS;
@@ -123,7 +117,7 @@ bool MazeController::move(Direction dir) {
   }
 }
 
-TileData MazeController::charToTile(const char input) const {
+TileData MazeController::charToTile(const char input) {
   switch (input) {
     case EMPTY:
       return EMPTY;
@@ -141,8 +135,7 @@ TileData MazeController::charToTile(const char input) const {
       return UNKNOWN;
   }
 }
-
-const std::string MazeController::tileToSymbol(const TileData &input) const {
+char MazeController::tileToSymbol(const TileData &input) {
   switch (input) {
     case EMPTY:
       return TileSymbols::EMPTY;
@@ -158,5 +151,31 @@ const std::string MazeController::tileToSymbol(const TileData &input) const {
       return TileSymbols::PREVIOUS;
     default:
       return TileSymbols::UNKNOWN;
+  }
+}
+void MazeController::setColor(const TileData &input) {
+  if (!has_colors()) return;
+  switch (input) {
+    case EMPTY:
+      wattron(stdscr, COLOR_PAIR(TileSymbolsColor::EMPTY));
+      break;
+    case WALL:
+      wattron(stdscr, COLOR_PAIR(TileSymbolsColor::WALL));
+      break;
+    case START:
+      wattron(stdscr, COLOR_PAIR(TileSymbolsColor::START));
+      break;
+    case END:
+      wattron(stdscr, COLOR_PAIR(TileSymbolsColor::END));
+      break;
+    case CURRENT:
+      wattron(stdscr, COLOR_PAIR(TileSymbolsColor::CURRENT));
+      break;
+    case PREVIOUS:
+      wattron(stdscr, COLOR_PAIR(TileSymbolsColor::PREVIOUS));
+      break;
+    default:
+      wattron(stdscr, COLOR_PAIR(TileSymbolsColor::UNKNOWN));
+      break;
   }
 }

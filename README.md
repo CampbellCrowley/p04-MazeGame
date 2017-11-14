@@ -1,1 +1,3 @@
-### README this is
+### MUST COMPILE USING `-lncurses`!
+Example: `g++ -lncurses main.cpp`
+
