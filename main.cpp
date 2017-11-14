@@ -9,6 +9,7 @@
 #include "Maze.h"
 
 using namespace std;
+using namespace Campbell::Color;
 
 // Global vars
 int width = 0;
@@ -32,81 +33,59 @@ const char* title =
 
 // Prototypes
 Direction getMoveDirection();
+void ExitApp();
+void SaveMaze();
+void ExitMaze();
+void interruptHandler(int s);
+int Main();
 
-// Definitions
-// Called before app exits in order to properly release terminal from NCurses.
-void ExitApp(bool force = false) {
-  endwin();
-  if (!force) {
-    mc.save("lastsession.dat");
-    bool tryAgain = true;
-    do {
-      cout << Campbell::Color::yellow
-           << "Would you like to save the game? (Y/n): "
-           << Campbell::Color::reset;
-      if (Campbell::Strings::getYesNo(true)) {
-        cout << Campbell::Color::yellow
-             << "Please enter the name of the file you would like to save to: "
-             << Campbell::Color::reset;
-        string filename;
-        getline(cin, filename);
-        cout << Campbell::Color::green << "Saving game...\r"
-             << Campbell::Color::reset << flush;
-        if (mc.save(filename.c_str())) {
-          cout << Campbell::Color::green << "Game successfull saved.\n"
-               << Campbell::Color::reset;
-          tryAgain = false;
-        } else {
-          cout << Campbell::Color::red << "Game failed to saved.\n"
-               << Campbell::Color::reset;
-        }
-      } else {
-        cout << Campbell::Color::red << "Not saving.\n"
-             << Campbell::Color::reset;
-        tryAgain = false;
-      }
-    } while (tryAgain);
-  }
-  exit(0);
-}
-// Catches Ctrl+C in order to call ExitApp properly.
-void interruptHandler(int s) {
-  (void)s;
-  ExitApp(true);
-}
 // Entry
-int main() {
-  cout << Campbell::Color::cyan << title;
-  cout << Campbell::Color::yellow << "Controls:\n";
-  cout << "UP: \u2191 or K\n";
-  cout << "DOWN: \u2193 or J\n";
-  cout << "LEFT: \u2191 or H\n";
-  cout << "RIGHT: \u2192 or L\n";
-  cout << "QUIT: Q\n" << Campbell::Color::reset;
+int main(int /*argc*/, const char** /*argv[]*/) {
+  cout << cyan << title;
+  while(Main() == 0) {}
+  return 0;
+}
+
+// Main
+int Main() {
   struct stat buf;
   bool loadLastSession = false;
-  if (stat("lastsession.dat", &buf) != -1) {
-    cout
-        << Campbell::Color::yellow
-        << "I found a previous session data. Would you like to load it? (Y/n): "
-        << Campbell::Color::reset;
-    loadLastSession = Campbell::Strings::getYesNo(true);
+  if (mc.width() == 0) {
+    if (stat("lastsession.dat", &buf) != -1) {
+      cout << yellow << "I found a previous session data. Would you like to "
+                        "load it? (Y/n): "
+           << reset;
+      loadLastSession = Campbell::Strings::getYesNo(true);
+    }
   }
   string option = "";
   int selection = 0;
   if (!loadLastSession) {
     do {
+      cout << yellow << "\n\nControls:\n";
+      cout << "UP: \u2191 or K\n";
+      cout << "DOWN: \u2193 or J\n";
+      cout << "LEFT: \u2191 or H\n";
+      cout << "RIGHT: \u2192 or L\n";
+      cout << "QUIT: Q\n" << reset;
       cout << "Please select an option:\n";
       cout << "1) Easy/Small\n";
       cout << "2) Medium\n";
       cout << "3) Hard/Large\n";
       cout << "4) Custom size\n";
-      cout << "5) Load File\n";
-      cout << "6) Quit Game\n";
+      if (mc.width() == 0) cout << red;
+      cout << "5) Save maze\n";
+      if (mc.width() == 0) cout << reset;
+      cout << "6) Load maze\n";
+      cout << "7) Quit Game\n";
       getline(cin, option);
+      if (option[0] == 'q' || option[0] == 'Q') {
+        selection = 7;
+        break;
+      }
       selection = Campbell::Strings::toNumber(option.c_str());
     } while (!Campbell::Strings::isNumber(option.c_str()) || selection < 1 ||
-             selection > 6);
+             (mc.width() == 0 && selection == 5) || selection > 7);
   } else {
     selection = 5;
     option = "lastsession.dat";
@@ -142,6 +121,10 @@ int main() {
       cols = Campbell::Strings::toNumber(option.c_str());
       break;
     case 5:
+      SaveMaze();
+      return 0;
+      break;
+    case 6:
       generateMaze = false;
       while (true) {
         if (!loadLastSession) {
@@ -149,15 +132,15 @@ int main() {
           getline(cin, option);
         }
         if (!mc.import (option.c_str())) {
-          cout << Campbell::Color::red << "Failed to open file.\n"
-               << Campbell::Color::reset;
+          cout << red << "Failed to open file.\n"
+               << reset;
         } else {
           break;
         }
         loadLastSession = false;
       }
       break;
-    case 6:
+    case 7:
       ExitApp();
       break;
   }
@@ -208,10 +191,12 @@ int main() {
   }
 
   remove("lastsession.dat");
-  ExitApp(mc.isComplete());
+  if (!mc.isComplete()) ExitMaze();
   return 0;
-}  // int main()
+}
 
+// Definitions
+// Gets user input and converts that to a direction.
 Direction getMoveDirection() {
   wchar_t input = getch();
   switch (input) {
@@ -237,4 +222,43 @@ Direction getMoveDirection() {
     default:
       return NONE;
   }
+}
+// Called before app exits in order to properly release terminal from NCurses.
+void ExitApp() {
+  endwin();
+  exit(0);
+}
+void SaveMaze() {
+  mc.save("lastsession.dat");
+  bool tryAgain = true;
+  do {
+    cout << yellow
+         << "Would you like to save the game? (Y/n): "
+         << reset;
+    if (Campbell::Strings::getYesNo(true)) {
+      cout << yellow
+           << "Please enter the name of the file you would like to save to: "
+           << reset;
+      string filename;
+      getline(cin, filename);
+      cout << green << "Saving game...\r" << reset << flush;
+      if (mc.save(filename.c_str())) {
+        cout << green << "Game successfull saved.\n" << reset;
+        tryAgain = false;
+      } else {
+        cout << red << "Game failed to saved.\n" << reset;
+      }
+    } else {
+      cout << red << "Not saving.\n" << reset;
+      tryAgain = false;
+    }
+  } while (tryAgain);
+}
+void ExitMaze() {
+  endwin();
+}
+// Catches Ctrl+C in order to call ExitApp properly.
+void interruptHandler(int s) {
+  (void)s;
+  ExitApp();
 }
