@@ -90,13 +90,13 @@ void MazeController::print(int cols, int rows) {
   }
 
   wmove(stdscr, 0, 0);
-  for (unsigned int i = start_y; i - start_y < (unsigned)rows -1&& i < height();
-       ++i) {
+  for (unsigned int i = start_y;
+       i - start_y < (unsigned)rows - 1 && i < height(); ++i) {
     setColor(WALL);
     waddch(stdscr, tileToSymbol(WALL));
     unsetColor(WALL);
-    for (unsigned int j = start_x; j - start_x < (unsigned)cols-1 && j < width();
-         ++j) {
+    for (unsigned int j = start_x;
+         j - start_x < (unsigned)cols - 3 && j < width(); ++j) {
       if (i == current_y && j == current_x) {
         setColor(CURRENT);
         waddch(stdscr, tileToSymbol(CURRENT));
