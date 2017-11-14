@@ -28,12 +28,6 @@ void interruptHandler(int s) {
   (void)s;
   ExitApp();
 }
-// Reprints maze if it doesn't fit in screen anymore.
-void resizeHandler(int sig) {
-  (void)sig;
-  getmaxyx(stdscr, height, width);
-  mc.print(height, width);
-}
 // Entry
 int main() {
   cout << "Maze Master!\n";
@@ -55,16 +49,16 @@ int main() {
   int cols = 0;
   switch (selection) {
     case 1:
-      rows = 10;
-      cols = 10;
+      rows = 11;
+      cols = 11;
       break;
     case 2:
-      rows = 100;
-      cols = 100;
+      rows = 51;
+      cols = 51;
       break;
     case 3:
-      rows = 500;
-      cols = 500;
+      rows = 101;
+      cols = 101;
       break;
     default:
     case 4:
@@ -98,9 +92,6 @@ int main() {
   sigIntHandler.sa_flags = 0;
   sigaction(SIGINT, &sigIntHandler, NULL);
 
-  // Handle window resize
-  signal(SIGWINCH, &resizeHandler);
-
   // Handle NCurses.
   initscr();
   cbreak();
@@ -109,25 +100,34 @@ int main() {
   // Colors
   start_color();
   init_pair(MazeController::TileSymbolsColor::EMPTY, COLOR_BLACK, COLOR_BLACK);
-  init_pair(MazeController::TileSymbolsColor::WALL, COLOR_WHITE, COLOR_BLACK);
-  init_pair(MazeController::TileSymbolsColor::START, COLOR_GREEN, COLOR_BLACK);
-  init_pair(MazeController::TileSymbolsColor::END, COLOR_RED, COLOR_BLACK);
-  init_pair(MazeController::TileSymbolsColor::CURRENT, COLOR_MAGENTA, COLOR_BLACK);
-  init_pair(MazeController::TileSymbolsColor::PREVIOUS, COLOR_BLUE, COLOR_BLACK);
+  init_pair(MazeController::TileSymbolsColor::WALL, COLOR_WHITE, COLOR_WHITE);
+  init_pair(MazeController::TileSymbolsColor::START, COLOR_GREEN, COLOR_GREEN);
+  init_pair(MazeController::TileSymbolsColor::END, COLOR_RED, COLOR_RED);
+  init_pair(MazeController::TileSymbolsColor::CURRENT, COLOR_MAGENTA, COLOR_MAGENTA);
+  init_pair(MazeController::TileSymbolsColor::PREVIOUS, COLOR_BLUE, COLOR_BLUE);
   init_pair(MazeController::TileSymbolsColor::UNKNOWN, COLOR_RED, COLOR_BLACK);
 
   // Get starting screensize
   getmaxyx(stdscr, height, width);
-  mc.print(height, width);
+  mc.print(width, height);
 
   if (generateMaze) mc.generate(rows, cols);
 
   // Play game
   Direction nextDirection = NONE;
+  getmaxyx(stdscr, height, width);
+  mc.print(width, height);
+  int lastWidth = width;
+  int lastHeight = height;
   while (!mc.isComplete() && nextDirection != EXIT) {
-    mc.print(height, width);
     nextDirection = getMoveDirection();
-    mc.move(nextDirection);
+    getmaxyx(stdscr, height, width);
+    if (nextDirection != NONE || lastWidth != width || lastHeight != height) {
+      mc.move(nextDirection);
+      mc.print(width, height);
+    }
+    lastWidth = width;
+    lastHeight = height;
   }
 
   ExitApp();
@@ -135,8 +135,7 @@ int main() {
 }  // int main()
 
 Direction getMoveDirection() {
-  wchar_t input;
-  while ((input = getch()) == ERR) {}
+  wchar_t input = getch();
   switch (input) {
     case KEY_DOWN:
     case 'J':
@@ -160,5 +159,4 @@ Direction getMoveDirection() {
     default:
       return NONE;
   }
-  return NONE;
 }

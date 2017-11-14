@@ -6,20 +6,20 @@
 #include <iostream>
 #include <unistd.h>
 
-const char MazeController::TileSymbols::EMPTY = ' ';
+const char MazeController::TileSymbols::EMPTY = '$';
 const char MazeController::TileSymbols::WALL = '#';
 const char MazeController::TileSymbols::START = '@';
 const char MazeController::TileSymbols::END = '!';
 const char MazeController::TileSymbols::CURRENT = '^';
 const char MazeController::TileSymbols::PREVIOUS = '.';
 const char MazeController::TileSymbols::UNKNOWN = 'E';
-const unsigned char MazeController::TileSymbolsColor::EMPTY = 0;
-const unsigned char MazeController::TileSymbolsColor::WALL = 1;
-const unsigned char MazeController::TileSymbolsColor::START = 2;
-const unsigned char MazeController::TileSymbolsColor::END = 3;
-const unsigned char MazeController::TileSymbolsColor::CURRENT = 4;
-const unsigned char MazeController::TileSymbolsColor::PREVIOUS = 5;
-const unsigned char MazeController::TileSymbolsColor::UNKNOWN = 6;
+const unsigned char MazeController::TileSymbolsColor::EMPTY = 1;
+const unsigned char MazeController::TileSymbolsColor::WALL = 2;
+const unsigned char MazeController::TileSymbolsColor::START = 3;
+const unsigned char MazeController::TileSymbolsColor::END = 4;
+const unsigned char MazeController::TileSymbolsColor::CURRENT = 5;
+const unsigned char MazeController::TileSymbolsColor::PREVIOUS = 6;
+const unsigned char MazeController::TileSymbolsColor::UNKNOWN = 7;
 
 bool MazeController::import(const char *filename) {
   std::fstream file(filename, std::ios::in);
@@ -54,32 +54,35 @@ void MazeController::print(int cols, int rows) {
   lastRows = rows;
   int start_x = 0;
   int start_y = 0;
-  if (height() > (unsigned)cols) {
-    start_x = current_x - cols / 2;
-    if (start_x < 0) start_x = 0;
-  }
-  if (width() > (unsigned)rows) {
+  if (height() > (unsigned)rows) {
     start_y = current_y - rows / 2;
     if (start_y < 0) start_y = 0;
+    if (start_y > (signed)height() - rows) start_y = height() - rows;
+  }
+  if (width() > (unsigned)cols) {
+    start_x = current_x - cols / 2;
+    if (start_x < 0) start_x = 0;
+    if (start_x > (signed)width() - cols) start_x = width() - cols;
   }
 
   wmove(stdscr, 0, 0);
-  for (unsigned int i = start_y; i - start_y < (unsigned)rows && i < height();
+  for (unsigned int i = start_y; i - start_y < (unsigned)rows -1&& i < height();
        ++i) {
-    for (unsigned int j = start_x; j - start_x < (unsigned)cols && j < width();
+    for (unsigned int j = start_x; j - start_x < (unsigned)cols-1 && j < width();
          ++j) {
       if (i == current_y && j == current_x) {
         setColor(CURRENT);
         waddch(stdscr, tileToSymbol(CURRENT));
+        unsetColor(CURRENT);
       } else {
         setColor(maze[i][j]);
         waddch(stdscr, tileToSymbol(maze[i][j]));
+        unsetColor(maze[i][j]);
       }
     }
     waddch(stdscr, '\n');
   }
   if (has_colors()) wattron(stdscr, A_NORMAL);
-  mvprintw(2, 300, "%dx%d", cols, rows);
   wrefresh(stdscr);
 }
 
@@ -194,6 +197,32 @@ void MazeController::setColor(const TileData &input) {
       break;
     default:
       wattron(stdscr, COLOR_PAIR(TileSymbolsColor::UNKNOWN));
+      break;
+  }
+}
+void MazeController::unsetColor(const TileData &input) {
+  if (!has_colors()) return;
+  switch (input) {
+    case EMPTY:
+      wattroff(stdscr, COLOR_PAIR(TileSymbolsColor::EMPTY));
+      break;
+    case WALL:
+      wattroff(stdscr, COLOR_PAIR(TileSymbolsColor::WALL));
+      break;
+    case START:
+      wattroff(stdscr, COLOR_PAIR(TileSymbolsColor::START));
+      break;
+    case END:
+      wattroff(stdscr, COLOR_PAIR(TileSymbolsColor::END));
+      break;
+    case CURRENT:
+      wattroff(stdscr, COLOR_PAIR(TileSymbolsColor::CURRENT));
+      break;
+    case PREVIOUS:
+      wattroff(stdscr, COLOR_PAIR(TileSymbolsColor::PREVIOUS));
+      break;
+    default:
+      wattroff(stdscr, COLOR_PAIR(TileSymbolsColor::UNKNOWN));
       break;
   }
 }

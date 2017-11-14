@@ -38,6 +38,7 @@ class MazeController {
   static char tileToSymbol(const TileData &input);
   // Converts a TileData to color.
   static void setColor(const TileData &input);
+  static void unsetColor(const TileData &input);
 
   // Maze dimensions
   unsigned int height() const { return maze.size(); }
