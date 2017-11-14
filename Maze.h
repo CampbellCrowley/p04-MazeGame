@@ -10,7 +10,8 @@ enum TileData {
   END = 'F',
   CURRENT = '^',
   PREVIOUS = '.',
-  UNKNOWN = '\0'
+  UNKNOWN = '\0',
+  FRONTIER = 'T'
 };
 enum Direction {
   UP = 'U',
@@ -28,12 +29,16 @@ class MazeController {
 
   // Loads new maze from file. Returns if this succeeded.
   bool import(const char* filename);
+  // Generates a maze using a Randomized Prim's Algorithm of the given
+  // dimensions.
+  void generate(unsigned int rows, unsigned int cols);
   // Prints maze to screen.
   void print(unsigned int cols, unsigned int rows) const;
   // If the player is in the maze exit.
   bool isComplete() const;
   // Move the player in a direction. Returns if the player actually moved.
   bool move(Direction dir);
+
   // Converts a character to known TileData.
   static TileData charToTile(const char input);
   // Converts a TileData to symbol to display.
@@ -73,6 +78,11 @@ class MazeController {
   unsigned int current_x, current_y;
   // The loaded maze.
   Maze maze;
+  std::vector<int> pickRandomNeighbor(std::vector<int> coords) const;
+  void addFontierCells(const std::vector<int> coords,
+                       std::vector<std::vector<int> > &input);
+  void mergeNeighborAndFrontier(std::vector<int> frontier,
+                                std::vector<int> neighbor);
 
 };  // class MazeController
 

@@ -2,6 +2,8 @@
 // Example: "g++ -lncurses main.cpp"
 #include <curses.h>
 #include <signal.h>
+#include <cstdlib>
+#include <iostream>
 #include "CampbellLib/CampbellLib.h"
 #include "Maze.h"
 
@@ -19,7 +21,6 @@ Direction getMoveDirection();
 // Called before app exits in order to properly release terminal from NCurses.
 void ExitApp() {
   endwin();
-  printf("ENDWIN\n");
   exit(0);
 }
 // Catches Ctrl+C in order to call ExitApp properly.
@@ -35,6 +36,65 @@ void resizeHandler(int sig) {
 }
 // Entry
 int main() {
+  cout << "Maze Master!\n";
+  string option = "";
+  int selection = 0;
+  do {
+    cout << "Please select an option:\n";
+    cout << "1) Easy/Small\n";
+    cout << "2) Medium\n";
+    cout << "3) Hard/Large\b";
+    cout << "4) Custom size\n";
+    cout << "5) Load File\n";
+    getline(cin, option);
+    selection = Campbell::Strings::toNumber(option.c_str());
+  } while (!Campbell::Strings::isNumber(option.c_str()) || selection < 1 ||
+           selection > 5);
+  bool generateMaze = true;
+  int rows = 0;
+  int cols = 0;
+  switch (selection) {
+    case 1:
+      rows = 10;
+      cols = 10;
+      break;
+    case 2:
+      rows = 100;
+      cols = 100;
+      break;
+    case 3:
+      rows = 500;
+      cols = 500;
+      break;
+    default:
+    case 4:
+      // TODO: Restrict sizes to larger than a value.
+      do {
+        cout << "Enter number of rows: ";
+        getline(cin, option);
+      } while (!Campbell::Strings::isNumber(option.c_str()));
+      rows = Campbell::Strings::toNumber(option.c_str());
+      do {
+        cout << "Enter number of columns: ";
+        getline(cin, option);
+      } while (!Campbell::Strings::isNumber(option.c_str()));
+      cols = Campbell::Strings::toNumber(option.c_str());
+      break;
+    case 5:
+      generateMaze = false;
+      string filename = "";
+      // TODO: Give better feedback.
+      do {
+        cout << "Enter a filename to load: ";
+        getline(cin, filename);
+      } while (!mc.import(filename.c_str()));
+      break;
+  }
+
+  cout << "ONE\n";
+  if (generateMaze) mc.generate(rows, cols);
+  cout << "TWO\n";
+
   // Handle execution interrupt.
   struct sigaction sigIntHandler;
   sigIntHandler.sa_handler = interruptHandler;
@@ -63,8 +123,6 @@ int main() {
   // Get starting screensize
   getmaxyx(stdscr, height, width);
 
-  mc.import("maze1.dat");
-
   // Play game
   Direction nextDirection = NONE;
   while (!mc.isComplete() && nextDirection != EXIT) {
@@ -80,7 +138,6 @@ int main() {
 Direction getMoveDirection() {
   wchar_t input;
   while ((input = getch()) == ERR) {}
-  mvwprintw(stdscr, 20, 0, "Input: %c ", input);
   switch (input) {
     case KEY_DOWN:
     case 'J':

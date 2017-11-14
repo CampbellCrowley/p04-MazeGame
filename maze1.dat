@@ -1,3 +1,10 @@
+# Example maze.
+# Key:
+# E: Empty
+# W: Wall
+# S: Start
+# E: Eend
+
 WWWWFWWWWWWWWWW
 WWWWEWWWWWWWWWW
 WWWWEWWWWWWWWWW
