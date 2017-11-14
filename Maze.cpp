@@ -3,8 +3,6 @@
 #include <cstdlib>
 #include <ctime>
 #include <fstream>
-#include <iostream>
-#include <unistd.h>
 
 const char MazeController::TileSymbols::EMPTY = '$';
 const char MazeController::TileSymbols::WALL = '#';
@@ -57,12 +55,12 @@ void MazeController::print(int cols, int rows) {
   if (height() > (unsigned)rows) {
     start_y = current_y - rows / 2;
     if (start_y < 0) start_y = 0;
-    if (start_y > (signed)height() - rows) start_y = height() - rows;
+    if (start_y > (signed)height() - rows) start_y = height() - rows + 1;
   }
   if (width() > (unsigned)cols) {
     start_x = current_x - cols / 2;
     if (start_x < 0) start_x = 0;
-    if (start_x > (signed)width() - cols) start_x = width() - cols;
+    if (start_x > (signed)width() - cols) start_x = width() - cols + 1;
   }
 
   wmove(stdscr, 0, 0);
@@ -343,14 +341,14 @@ void MazeController::addFontierCells(const std::vector<int> coords,
     newCoord[1] = coords[1];
     input.push_back(newCoord);
   }
-  if ((unsigned int)coords[0] + 2 < width() &&
+  if ((unsigned int)coords[0] + 2 < height() &&
       maze[coords[0] + 2][coords[1]] == UNKNOWN) {
     maze[coords[0] + 2][coords[1]] = FRONTIER;
     newCoord[0] = coords[0] + 2;
     newCoord[1] = coords[1];
     input.push_back(newCoord);
   }
-  if ((unsigned int)coords[1] + 2 < height() &&
+  if ((unsigned int)coords[1] + 2 < width() &&
       maze[coords[0]][coords[1] + 2] == UNKNOWN) {
     maze[coords[0]][coords[1] + 2] = FRONTIER;
     newCoord[0] = coords[0];

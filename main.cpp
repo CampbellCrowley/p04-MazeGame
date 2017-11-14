@@ -13,6 +13,21 @@ using namespace std;
 int width = 0;
 int height = 0;
 MazeController mc;
+const char* title =
+"        :::   :::       :::     ::::::::: ::::::::::                       \n"
+"      :+:+: :+:+:    :+: :+:        :+:  :+:                               \n"
+"    +:+ +:+:+ +:+  +:+   +:+      +:+   +:+                                \n"
+"   +#+  +:+  +#+ +#++:++#++:    +#+    +#++:++#                            \n"
+"  +#+       +#+ +#+     +#+   +#+     +#+                                  \n"
+" #+#       #+# #+#     #+#  #+#      #+#                                   \n"
+"###       ### ###     ### ######### ##########                             \n"
+"        :::   :::       :::      :::::::: ::::::::::: :::::::::: ::::::::: \n"
+"      :+:+: :+:+:    :+: :+:   :+:    :+:    :+:     :+:        :+:    :+: \n"
+"    +:+ +:+:+ +:+  +:+   +:+  +:+           +:+     +:+        +:+    +:+  \n"
+"   +#+  +:+  +#+ +#++:++#++: +#++:++#++    +#+     +#++:++#   +#++:++#:    \n"
+"  +#+       +#+ +#+     +#+        +#+    +#+     +#+        +#+    +#+    \n"
+" #+#       #+# #+#     #+# #+#    #+#    #+#     #+#        #+#    #+#     \n"
+"###       ### ###     ###  ########     ###     ########## ###    ###      \n";
 
 // Prototypes
 Direction getMoveDirection();
@@ -30,7 +45,13 @@ void interruptHandler(int s) {
 }
 // Entry
 int main() {
-  cout << "Maze Master!\n";
+  cout << title;
+  cout << "Controls:\n";
+  cout << "UP: \u2191 or K\n";
+  cout << "DOWN: \u2193 or J\n";
+  cout << "LEFT: \u2191 or H\n";
+  cout << "RIGHT: \u2192 or L\n";
+  cout << "QUIT: Q\n";
   string option = "";
   int selection = 0;
   do {
