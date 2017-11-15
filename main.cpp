@@ -3,6 +3,7 @@
 #include <curses.h>
 #include <signal.h>
 #include <sys/stat.h>
+#include <unistd.h>
 #include <cstdlib>
 #include <iostream>
 #include "CampbellLib/CampbellLib.h"
@@ -30,6 +31,27 @@ const char* title =
 "  +#+       +#+ +#+     +#+        +#+    +#+     +#+        +#+    +#+    \n"
 " #+#       #+# #+#     #+# #+#    #+#    #+#     #+#        #+#    #+#     \n"
 "###       ### ###     ###  ########     ###     ########## ###    ###      \n";
+const char* completeTitle = // Maze Complete!
+    "                                    :::   :::       :::     ::::::::: "
+    "::::::::::                     \n                                  :+:+: "
+    ":+:+:    :+: :+:        :+:  :+:                             \n           "
+    "                     +:+ +:+:+ +:+  +:+   +:+      +:+   +:+              "
+    "                \n                               +#+  +:+  +#+ "
+    "+#++:++#++:    +#+    +#++:++#                          \n                "
+    "              +#+       +#+ +#+     +#+   +#+     +#+                     "
+    "           \n                             #+#       #+# #+#     #+#  #+#  "
+    "    #+#                                 \n                            ### "
+    "      ### ###     ### ######### ##########                           \n   "
+    "   ::::::::   ::::::::    :::   :::   :::::::::  :::        :::::::::: "
+    "::::::::::: :::::::::: ::: \n    :+:    :+: :+:    :+:  :+:+: :+:+:  :+:  "
+    "  :+: :+:        :+:            :+:     :+:        :+:  \n   +:+        "
+    "+:+    +:+ +:+ +:+:+ +:+ +:+    +:+ +:+        +:+            +:+     +:+ "
+    "       +:+   \n  +#+        +#+    +:+ +#+  +:+  +#+ +#++:++#+  +#+       "
+    " +#++:++#       +#+     +#++:++#   +#+    \n +#+        +#+    +#+ +#+    "
+    "   +#+ +#+        +#+        +#+            +#+     +#+        +#+     "
+    "\n#+#    #+# #+#    #+# #+#       #+# #+#        #+#        #+#           "
+    " #+#     #+#                 \n########   ########  ###       ### ###     "
+    "   ########## ##########     ###     ########## ###       \n";
 
 // Prototypes
 Direction getMoveDirection();
@@ -50,6 +72,8 @@ int main(int /*argc*/, const char** /*argv[]*/) {
 int Main() {
   struct stat buf;
   bool loadLastSession = false;
+  cout << flush;
+  cin.clear();
   if (mc.width() == 0) {
     if (stat("lastsession.dat", &buf) != -1) {
       cout << yellow << "I found a previous session data. Would you like to "
@@ -63,13 +87,13 @@ int Main() {
   if (!loadLastSession) {
     do {
       cout << yellow << "\n\nControls:\n";
-      cout << "UP: \u2191 or K\n";
-      cout << "DOWN: \u2193 or J\n";
-      cout << "LEFT: \u2191 or H\n";
-      cout << "RIGHT: \u2192 or L\n";
-      cout << "HINT: \"\n";
+      cout << "UP:      \u2191 or K\n";
+      cout << "DOWN:    \u2193 or J\n";
+      cout << "LEFT:    \u2191 or H\n";
+      cout << "RIGHT:   \u2192 or L\n";
+      cout << "HINT:    \"\n";
       cout << "GIVE UP: ?\n";
-      cout << "QUIT: Q\n" << reset;
+      cout << "QUIT:    Q\n" << reset;
       cout << "Please select an option:\n";
       cout << "1) Easy/Small\n";
       cout << "2) Medium\n";
@@ -80,6 +104,8 @@ int Main() {
       if (mc.width() == 0) cout << reset;
       cout << "6) Load maze\n";
       cout << "7) Quit Game\n";
+      cout << flush;
+      cin.clear();
       getline(cin, option);
       if (option[0] == 'q' || option[0] == 'Q') {
         selection = 7;
@@ -89,7 +115,7 @@ int Main() {
     } while (!Campbell::Strings::isNumber(option.c_str()) || selection < 1 ||
              (mc.width() == 0 && selection == 5) || selection > 7);
   } else {
-    selection = 5;
+    selection = 6;
     option = "lastsession.dat";
   }
   bool generateMaze = true;
@@ -128,19 +154,17 @@ int Main() {
       break;
     case 6:
       generateMaze = false;
-      while (true) {
-        if (!loadLastSession) {
-          cout << "Enter a filename to load: ";
-          getline(cin, option);
-        }
-        if (!mc.import (option.c_str())) {
-          cout << red << "Failed to open file.\n"
-               << reset;
-        } else {
-          break;
-        }
-        loadLastSession = false;
+      if (!loadLastSession) {
+        cout << "Enter a filename to load: ";
+        getline(cin, option);
       }
+      if (!mc.import(option.c_str())) {
+        cout << red << "Failed to open file.\n" << reset;
+        return 0;
+      } else {
+        break;
+      }
+      loadLastSession = false;
       break;
     case 7:
       ExitApp();
@@ -161,14 +185,15 @@ int Main() {
   keypad(stdscr, TRUE);
   // Colors
   start_color();
+  init_pair(10, COLOR_GREEN, COLOR_BLACK);
   init_pair(MazeController::TileSymbolsColor::EMPTY, COLOR_BLACK, COLOR_BLACK);
-  init_pair(MazeController::TileSymbolsColor::WALL, COLOR_CYAN, COLOR_CYAN);
+  init_pair(MazeController::TileSymbolsColor::WALL, COLOR_RED, COLOR_RED);
   init_pair(MazeController::TileSymbolsColor::START, COLOR_GREEN, COLOR_GREEN);
   init_pair(MazeController::TileSymbolsColor::END, COLOR_YELLOW, COLOR_YELLOW);
-  init_pair(MazeController::TileSymbolsColor::CURRENT, COLOR_WHITE, COLOR_WHITE);
+  init_pair(MazeController::TileSymbolsColor::CURRENT, COLOR_GREEN, COLOR_GREEN);
   init_pair(MazeController::TileSymbolsColor::PREVIOUS, COLOR_BLUE, COLOR_BLUE);
   init_pair(MazeController::TileSymbolsColor::UNKNOWN, COLOR_RED, COLOR_BLACK);
-  init_pair(MazeController::TileSymbolsColor::HINT, COLOR_MAGENTA, COLOR_MAGENTA);
+  init_pair(MazeController::TileSymbolsColor::HINT, COLOR_WHITE, COLOR_WHITE);
 
   // Get starting screensize
   getmaxyx(stdscr, height, width);
@@ -185,7 +210,7 @@ int Main() {
   mc.print(width, height);
   int lastWidth = width;
   int lastHeight = height;
-  while (!mc.isComplete() && nextDirection != EXIT) {
+  while (nextDirection != EXIT) {
     nextDirection = getMoveDirection();
     getmaxyx(stdscr, height, width);
     if (mc.move(nextDirection)) {
@@ -193,12 +218,28 @@ int Main() {
     } else if (lastWidth != width || lastHeight != height) {
       mc.print(width, height);
     }
+    if (mc.isComplete()) {
+      mc.move(SOLVE);
+      mc.print(width, height);
+      usleep(100000);
+      wattron(stdscr, COLOR_PAIR(10));
+      move(height / 2 - 10, 0);
+      addstr(completeTitle);
+      addstr("Press 'Q' to quit\n");
+      wattroff(stdscr, COLOR_PAIR(10));
+      refresh();
+      while (getMoveDirection() == NONE) {}
+      break;
+    }
     lastWidth = width;
     lastHeight = height;
   }
 
-  ExitMaze();
   remove("lastsession.dat");
+  ExitMaze();
+  if (mc.isComplete()) {
+    cout << green << completeTitle << reset;
+  }
   return 0;
 }
 
@@ -242,7 +283,6 @@ void ExitApp() {
   exit(0);
 }
 void SaveMaze() {
-  mc.save("lastsession.dat");
   bool tryAgain = true;
   do {
     cout << yellow
@@ -268,6 +308,7 @@ void SaveMaze() {
   } while (tryAgain);
 }
 void ExitMaze() {
+  mc.save("lastsession.dat");
   erase();
   clear();
   endwin();

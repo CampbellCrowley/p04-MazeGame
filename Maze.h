@@ -9,7 +9,7 @@ enum TileData {
   START = 'S',
   END = 'F',
   CURRENT = '^',
-  PREVIOUS = '.',
+  PREVIOUS = '_',
   UNKNOWN = '\0',
   FRONTIER = 'T',
   HINT = 'H'
