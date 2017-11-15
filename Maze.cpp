@@ -1,5 +1,6 @@
 #include "Maze.h"
 #include <curses.h>
+#include <cmath>
 #include <cstdlib>
 #include <ctime>
 #include <fstream>
@@ -58,7 +59,8 @@ bool MazeController::save(const char *filename) {
     file << "# This file was created automatically by Maze Master.\n";
     for (unsigned int i = 0; i < maze.size(); ++i) {
       for (unsigned int j = 0; j < maze[i].size(); ++j) {
-        if (maze[i][j] == EMPTY && i == current_y && j == current_x) {
+        if ((maze[i][j] == EMPTY || maze[i][j] == PREVIOUS) && i == current_y &&
+            j == current_x) {
           file << (char)CURRENT;
         } else {
           file << (char)maze[i][j];
@@ -313,6 +315,7 @@ void MazeController::generate(unsigned int rows, unsigned int cols) {
     addFontierCells(coord, frontierTiles);
   }
 
+  int iterations = 0;
   while (frontierTiles.size() > 0) {
     int selectedFrontierCell = rand() % frontierTiles.size();
     std::vector<int> selectedNeighborCell =
@@ -323,7 +326,9 @@ void MazeController::generate(unsigned int rows, unsigned int cols) {
       addFontierCells(frontierTiles[selectedFrontierCell], frontierTiles);
     }
     frontierTiles.erase(frontierTiles.begin() + selectedFrontierCell);
-    print();
+    int power = log10(++iterations);
+    if (power < 1) power = 1;
+    if (iterations % (int)pow(power, power - 1) == 0) print();
   }
   for (unsigned int i = 0; i < height(); ++i) {
     for (unsigned int j = 0; j < width(); ++j) {

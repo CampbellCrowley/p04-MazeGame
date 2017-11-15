@@ -235,7 +235,6 @@ int Main() {
     lastHeight = height;
   }
 
-  remove("lastsession.dat");
   ExitMaze();
   if (mc.isComplete()) {
     cout << green << completeTitle << reset;
@@ -308,7 +307,8 @@ void SaveMaze() {
   } while (tryAgain);
 }
 void ExitMaze() {
-  mc.save("lastsession.dat");
+  if (!mc.isComplete()) mc.save("lastsession.dat");
+  else remove("lastsession.dat");
   erase();
   clear();
   endwin();
