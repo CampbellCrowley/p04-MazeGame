@@ -11,6 +11,7 @@ const char MazeController::TileSymbols::END = '!';
 const char MazeController::TileSymbols::CURRENT = '^';
 const char MazeController::TileSymbols::PREVIOUS = '.';
 const char MazeController::TileSymbols::UNKNOWN = 'E';
+const char MazeController::TileSymbols::HINT = 'H';
 const unsigned char MazeController::TileSymbolsColor::EMPTY = 1;
 const unsigned char MazeController::TileSymbolsColor::WALL = 2;
 const unsigned char MazeController::TileSymbolsColor::START = 3;
@@ -18,12 +19,14 @@ const unsigned char MazeController::TileSymbolsColor::END = 4;
 const unsigned char MazeController::TileSymbolsColor::CURRENT = 5;
 const unsigned char MazeController::TileSymbolsColor::PREVIOUS = 6;
 const unsigned char MazeController::TileSymbolsColor::UNKNOWN = 7;
+const unsigned char MazeController::TileSymbolsColor::HINT = 8;
 
 bool MazeController::import(const char *filename) {
   std::fstream file(filename, std::ios::in);
   if (!file.fail()) {
     std::string line;
     maze.clear();
+    invalidateSolution();
     wmove(stdscr, 20, 0);
     bool hasCurrent = false;
     while (getline(file, line)) {
@@ -160,10 +163,32 @@ bool MazeController::move(Direction dir) {
         current_x++;
         return true;
       }
+    case HELP:
+      solve();
+      for (unsigned int i = 0; i < height(); ++i) {
+        for (unsigned int j = 0; j < width(); ++j) {
+          if ((maze[i][j] == solution[i][j] && solution[i][j] == PREVIOUS) ||
+              (maze[i][j] == PREVIOUS && solution[i][j] == EMPTY)) {
+            maze[i][j] = HINT;
+          }
+        }
+      }
+      return true;
+    case SOLVE:
+      solve();
+      for (unsigned int i = 0; i < height(); ++i) {
+        for (unsigned int j = 0; j < width(); ++j) {
+          if ((maze[i][j] == solution[i][j] &&
+               (solution[i][j] == PREVIOUS || solution[i][j] == EMPTY)) ||
+              (maze[i][j] == PREVIOUS && solution[i][j] == EMPTY)) {
+            maze[i][j] = HINT;
+          }
+        }
+      }
+      return true;
     case NONE:
     default:
       return false;
-      break;
   }
 }
 
@@ -181,6 +206,8 @@ TileData MazeController::charToTile(const char input) {
       return CURRENT;
     case PREVIOUS:
       return PREVIOUS;
+    case HINT:
+      return HINT;
     default:
       return UNKNOWN;
   }
@@ -201,6 +228,8 @@ char MazeController::tileToSymbol(const TileData &input) {
       return TileSymbols::PREVIOUS;
     case FRONTIER:
       return FRONTIER;
+    case HINT:
+      return TileSymbols::HINT;
     default:
       return TileSymbols::UNKNOWN;
   }
@@ -225,6 +254,9 @@ void MazeController::setColor(const TileData &input) {
       break;
     case PREVIOUS:
       wattron(stdscr, COLOR_PAIR(TileSymbolsColor::PREVIOUS));
+      break;
+    case HINT:
+      wattron(stdscr, COLOR_PAIR(TileSymbolsColor::HINT));
       break;
     default:
       wattron(stdscr, COLOR_PAIR(TileSymbolsColor::UNKNOWN));
@@ -252,6 +284,9 @@ void MazeController::unsetColor(const TileData &input) {
     case PREVIOUS:
       wattroff(stdscr, COLOR_PAIR(TileSymbolsColor::PREVIOUS));
       break;
+    case HINT:
+      wattroff(stdscr, COLOR_PAIR(TileSymbolsColor::HINT));
+      break;
     default:
       wattroff(stdscr, COLOR_PAIR(TileSymbolsColor::UNKNOWN));
       break;
@@ -260,6 +295,7 @@ void MazeController::unsetColor(const TileData &input) {
 
 void MazeController::generate(unsigned int rows, unsigned int cols) {
   maze.clear();
+  invalidateSolution();
   maze = std::vector<std::vector<TileData> >(
       rows, std::vector<TileData>(cols, UNKNOWN));
 
@@ -427,4 +463,28 @@ void MazeController::mergeNeighborAndFrontier(std::vector<int> frontier,
       }
     }
   }
+}
+
+void MazeController::solve() {
+  if (isSolutionValid) return;
+  solution = maze;
+  bool didSomething = false;
+  do {
+    didSomething = false;
+    for (unsigned int i = 0; i < height(); ++i) {
+      for (unsigned int j = 0; j < width(); ++j) {
+        if (solution[i][j] == WALL) continue;
+        int numSides = 0;
+        if (i == 0 || !isEmpty(solution[i - 1][j])) numSides++;
+        if (j == 0 || !isEmpty(solution[i][j - 1])) numSides++;
+        if (i == height() - 1 || !isEmpty(solution[i + 1][j])) numSides++;
+        if (j == width() - 1 || !isEmpty(solution[i][j + 1])) numSides++;
+        if (numSides == 3 && solution[i][j] != END && solution[i][j] != START) {
+          solution[i][j] = WALL;
+          didSomething = true;
+        }
+      }
+    }
+  } while (didSomething);
+  isSolutionValid = true;
 }

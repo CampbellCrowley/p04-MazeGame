@@ -67,6 +67,8 @@ int Main() {
       cout << "DOWN: \u2193 or J\n";
       cout << "LEFT: \u2191 or H\n";
       cout << "RIGHT: \u2192 or L\n";
+      cout << "HINT: \"\n";
+      cout << "GIVE UP: ?\n";
       cout << "QUIT: Q\n" << reset;
       cout << "Please select an option:\n";
       cout << "1) Easy/Small\n";
@@ -160,38 +162,43 @@ int Main() {
   // Colors
   start_color();
   init_pair(MazeController::TileSymbolsColor::EMPTY, COLOR_BLACK, COLOR_BLACK);
-  init_pair(MazeController::TileSymbolsColor::WALL, COLOR_WHITE, COLOR_WHITE);
+  init_pair(MazeController::TileSymbolsColor::WALL, COLOR_CYAN, COLOR_CYAN);
   init_pair(MazeController::TileSymbolsColor::START, COLOR_GREEN, COLOR_GREEN);
-  init_pair(MazeController::TileSymbolsColor::END, COLOR_RED, COLOR_RED);
-  init_pair(MazeController::TileSymbolsColor::CURRENT, COLOR_MAGENTA, COLOR_MAGENTA);
+  init_pair(MazeController::TileSymbolsColor::END, COLOR_YELLOW, COLOR_YELLOW);
+  init_pair(MazeController::TileSymbolsColor::CURRENT, COLOR_WHITE, COLOR_WHITE);
   init_pair(MazeController::TileSymbolsColor::PREVIOUS, COLOR_BLUE, COLOR_BLUE);
   init_pair(MazeController::TileSymbolsColor::UNKNOWN, COLOR_RED, COLOR_BLACK);
+  init_pair(MazeController::TileSymbolsColor::HINT, COLOR_MAGENTA, COLOR_MAGENTA);
 
   // Get starting screensize
   getmaxyx(stdscr, height, width);
+  clear();
   mc.print(width, height);
 
+  clear();
   if (generateMaze) mc.generate(rows, cols);
 
   // Play game
   Direction nextDirection = NONE;
   getmaxyx(stdscr, height, width);
+  clear();
   mc.print(width, height);
   int lastWidth = width;
   int lastHeight = height;
   while (!mc.isComplete() && nextDirection != EXIT) {
     nextDirection = getMoveDirection();
     getmaxyx(stdscr, height, width);
-    if (nextDirection != NONE || lastWidth != width || lastHeight != height) {
-      mc.move(nextDirection);
+    if (mc.move(nextDirection)) {
+      mc.print(width, height);
+    } else if (lastWidth != width || lastHeight != height) {
       mc.print(width, height);
     }
     lastWidth = width;
     lastHeight = height;
   }
 
+  ExitMaze();
   remove("lastsession.dat");
-  if (!mc.isComplete()) ExitMaze();
   return 0;
 }
 
@@ -219,6 +226,12 @@ Direction getMoveDirection() {
     case 'Q':
     case 'q':
       return EXIT;
+    case '\'':
+    case '\"':
+      return HELP;
+    case '?':
+    case '/':
+      return SOLVE;
     default:
       return NONE;
   }
@@ -255,6 +268,8 @@ void SaveMaze() {
   } while (tryAgain);
 }
 void ExitMaze() {
+  erase();
+  clear();
   endwin();
 }
 // Catches Ctrl+C in order to call ExitApp properly.
