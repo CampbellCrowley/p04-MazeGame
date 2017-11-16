@@ -1,5 +1,6 @@
 #include "Maze.h"
 #include <curses.h>
+#include <unistd.h>
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
@@ -21,6 +22,83 @@ const unsigned char MazeController::TileSymbolsColor::CURRENT = 5;
 const unsigned char MazeController::TileSymbolsColor::PREVIOUS = 6;
 const unsigned char MazeController::TileSymbolsColor::UNKNOWN = 7;
 const unsigned char MazeController::TileSymbolsColor::HINT = 8;
+
+void MazeController::startWin() {
+  // Handle NCurses.
+  initscr();
+  cbreak();
+  noecho();
+  keypad(stdscr, TRUE);
+  // Colors
+  start_color();
+  init_pair(10, COLOR_GREEN, COLOR_BLACK);
+  init_pair(MazeController::TileSymbolsColor::EMPTY, COLOR_BLACK, COLOR_BLACK);
+  init_pair(MazeController::TileSymbolsColor::WALL, COLOR_RED, COLOR_RED);
+  init_pair(MazeController::TileSymbolsColor::START, COLOR_GREEN, COLOR_GREEN);
+  init_pair(MazeController::TileSymbolsColor::END, COLOR_YELLOW, COLOR_YELLOW);
+  init_pair(MazeController::TileSymbolsColor::CURRENT, COLOR_GREEN, COLOR_GREEN);
+  init_pair(MazeController::TileSymbolsColor::PREVIOUS, COLOR_BLUE, COLOR_BLUE);
+  init_pair(MazeController::TileSymbolsColor::UNKNOWN, COLOR_RED, COLOR_BLACK);
+  init_pair(MazeController::TileSymbolsColor::HINT, COLOR_WHITE, COLOR_WHITE);
+  isWinOpen_ = true;
+}
+void MazeController::endWin() {
+  endwin();
+  isWinOpen_ = false;
+}
+
+void MazeController::playGame(int generateRows, int generateCols) {
+  unsigned int height, width;
+  getmaxyx(stdscr, height, width);
+  startWin();
+  clear();
+  print(width, height);
+
+  clear();
+  if (generateRows > 0 && generateCols > 0) {
+    generate(generateRows, generateCols);
+  } else if (MazeController::width() == 0) {
+    generate(51, 51);
+  }
+
+  Direction nextDirection = NONE;
+  getmaxyx(stdscr, height, width);
+  clear();
+  print(width, height);
+  bool justFinished = true;
+  while (nextDirection != EXIT && isWinOpen()) {
+    nextDirection = getMoveDirection();
+    getmaxyx(stdscr, height, width);
+    if (move(nextDirection, !justFinished)) {
+      print(width, height);
+    } else if (lastCols != width || lastRows != height) {
+      print(width, height);
+    }
+    if (isComplete() && justFinished) {
+      justFinished = false;
+      move(SOLVE);
+      print(width, height);
+      usleep(100000);
+      wattron(stdscr, COLOR_PAIR(10));
+      ::move(height / 2 - 10, 0);
+      addstr(completeTitle);
+      addstr("Press 'Q' to quit\nMovement is unlocked.\n");
+      wattroff(stdscr, COLOR_PAIR(10));
+      refresh();
+    }
+    lastCols = width;
+    lastRows = height;
+  }
+
+  Exit(justFinished);
+}
+void MazeController::Exit(bool shouldSave) {
+  if (shouldSave) save("lastsession.dat");
+  else remove("lastsession.dat");
+  erase();
+  clear();
+  endWin();
+}
 
 bool MazeController::import(const char *filename) {
   std::fstream file(filename, std::ios::in);
@@ -86,6 +164,7 @@ bool MazeController::save(const char *filename) {
 }
 
 void MazeController::print(int cols, int rows, const Maze &maze) {
+  if (cols == 0 && rows == 0) getmaxyx(stdscr, rows, cols);
   if (cols <= 0) cols = lastCols;
   if (rows <= 0) rows = lastRows;
   lastCols = cols;

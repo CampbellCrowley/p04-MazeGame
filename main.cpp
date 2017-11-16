@@ -3,7 +3,6 @@
 #include <curses.h>
 #include <signal.h>
 #include <sys/stat.h>
-#include <unistd.h>
 #include <cstdlib>
 #include <iostream>
 #include "CampbellLib/CampbellLib.h"
@@ -15,7 +14,6 @@ using namespace Campbell::Color;
 // Global vars
 int width = 0;
 int height = 0;
-MazeController mc;
 const char* title =
 "        :::   :::       :::     ::::::::: ::::::::::                       \n"
 "      :+:+: :+:+:    :+: :+:        :+:  :+:                               \n"
@@ -31,54 +29,29 @@ const char* title =
 "  +#+       +#+ +#+     +#+        +#+    +#+     +#+        +#+    +#+    \n"
 " #+#       #+# #+#     #+# #+#    #+#    #+#     #+#        #+#    #+#     \n"
 "###       ### ###     ###  ########     ###     ########## ###    ###      \n";
-const char* completeTitle = // Maze Complete!
-    "                                    :::   :::       :::     ::::::::: "
-    "::::::::::                     \n                                  :+:+: "
-    ":+:+:    :+: :+:        :+:  :+:                             \n           "
-    "                     +:+ +:+:+ +:+  +:+   +:+      +:+   +:+              "
-    "                \n                               +#+  +:+  +#+ "
-    "+#++:++#++:    +#+    +#++:++#                          \n                "
-    "              +#+       +#+ +#+     +#+   +#+     +#+                     "
-    "           \n                             #+#       #+# #+#     #+#  #+#  "
-    "    #+#                                 \n                            ### "
-    "      ### ###     ### ######### ##########                           \n   "
-    "   ::::::::   ::::::::    :::   :::   :::::::::  :::        :::::::::: "
-    "::::::::::: :::::::::: ::: \n    :+:    :+: :+:    :+:  :+:+: :+:+:  :+:  "
-    "  :+: :+:        :+:            :+:     :+:        :+:  \n   +:+        "
-    "+:+    +:+ +:+ +:+:+ +:+ +:+    +:+ +:+        +:+            +:+     +:+ "
-    "       +:+   \n  +#+        +#+    +:+ +#+  +:+  +#+ +#++:++#+  +#+       "
-    " +#++:++#       +#+     +#++:++#   +#+    \n +#+        +#+    +#+ +#+    "
-    "   +#+ +#+        +#+        +#+            +#+     +#+        +#+     "
-    "\n#+#    #+# #+#    #+# #+#       #+# #+#        #+#        #+#           "
-    " #+#     #+#                 \n########   ########  ###       ### ###     "
-    "   ########## ##########     ###     ########## ###       \n";
 
 // Prototypes
-Direction getMoveDirection();
-void ExitApp();
-void SaveMaze();
-void ExitMaze();
+void SaveMaze(MazeController& mc);
 void interruptHandler(int s);
-int Main(bool firstRun);
+int Main(MazeController& mc, bool firstRun);
 
 // Entry
 int main(int /*argc*/, const char** /*argv[]*/) {
   cout << cyan << title;
   bool firstRun = true;
+  MazeController mc;
   try {
-    while (Main(firstRun) == 0) { firstRun = false; }
-  } catch (runtime_error const& e) {
-    cerr << "Exiting due to runtime error:\n" << e.what() << endl;
-  } catch (exception const& e) {
-    cerr << "Exiting due to exception:\n" << e.what() << endl;
+    while (Main(mc, firstRun) == 0) { firstRun = false; }
   } catch (...) {
+    endwin();
     cerr << "Exiting due to unknown failure.\n";
+    return 1;
   }
   return 0;
 }
 
 // Main
-int Main(bool firstRun) {
+int Main(MazeController& mc, bool firstRun) {
   struct stat buf;
   bool loadLastSession = false;
   cout << flush;
@@ -127,9 +100,8 @@ int Main(bool firstRun) {
     selection = 6;
     option = "lastsession.dat";
   }
-  bool generateMaze = true;
-  int rows = 0;
-  int cols = 0;
+  int rows = -1;
+  int cols = -1;
   switch (selection) {
     case 1:
       rows = 11;
@@ -156,11 +128,10 @@ int Main(bool firstRun) {
         cols = Campbell::Strings::toNumber(option.c_str());
         break;
     case 5:
-      SaveMaze();
+      SaveMaze(mc);
       return 0;
       break;
     case 6:
-      generateMaze = false;
       if (!loadLastSession) {
         cout << "Enter a filename to load: ";
         getline(cin, option);
@@ -174,8 +145,7 @@ int Main(bool firstRun) {
       loadLastSession = false;
       break;
     case 7:
-      ExitApp();
-      break;
+      return 1;
   }
 
   // Handle execution interrupt.
@@ -185,115 +155,17 @@ int Main(bool firstRun) {
   sigIntHandler.sa_flags = 0;
   sigaction(SIGINT, &sigIntHandler, NULL);
 
-  // Handle NCurses.
-  initscr();
-  cbreak();
-  noecho();
-  keypad(stdscr, TRUE);
-  // Colors
-  start_color();
-  init_pair(10, COLOR_GREEN, COLOR_BLACK);
-  init_pair(MazeController::TileSymbolsColor::EMPTY, COLOR_BLACK, COLOR_BLACK);
-  init_pair(MazeController::TileSymbolsColor::WALL, COLOR_RED, COLOR_RED);
-  init_pair(MazeController::TileSymbolsColor::START, COLOR_GREEN, COLOR_GREEN);
-  init_pair(MazeController::TileSymbolsColor::END, COLOR_YELLOW, COLOR_YELLOW);
-  init_pair(MazeController::TileSymbolsColor::CURRENT, COLOR_GREEN, COLOR_GREEN);
-  init_pair(MazeController::TileSymbolsColor::PREVIOUS, COLOR_BLUE, COLOR_BLUE);
-  init_pair(MazeController::TileSymbolsColor::UNKNOWN, COLOR_RED, COLOR_BLACK);
-  init_pair(MazeController::TileSymbolsColor::HINT, COLOR_WHITE, COLOR_WHITE);
+  // Play Game
+  mc.playGame(rows, cols);
 
-  // Get starting screensize
-  getmaxyx(stdscr, height, width);
-  clear();
-  mc.print(width, height);
-
-  clear();
-  if (generateMaze) mc.generate(rows, cols);
-
-  // Play game
-  Direction nextDirection = NONE;
-  getmaxyx(stdscr, height, width);
-  clear();
-  mc.print(width, height);
-  int lastWidth = width;
-  int lastHeight = height;
-  bool justFinished = true;
-  while (nextDirection != EXIT) {
-    nextDirection = getMoveDirection();
-    getmaxyx(stdscr, height, width);
-    if (mc.move(nextDirection, !justFinished)) {
-      mc.print(width, height);
-    } else if (lastWidth != width || lastHeight != height) {
-      mc.print(width, height);
-    }
-    if (mc.isComplete() && justFinished) {
-      justFinished = false;
-      mc.move(SOLVE);
-      mc.print(width, height);
-      usleep(100000);
-      wattron(stdscr, COLOR_PAIR(10));
-      move(height / 2 - 10, 0);
-      addstr(completeTitle);
-      addstr("Press 'Q' to quit\nMovement is unlocked.\n");
-      wattroff(stdscr, COLOR_PAIR(10));
-      refresh();
-    }
-    lastWidth = width;
-    lastHeight = height;
-  }
-
-  ExitMaze();
-  if (mc.isComplete()) {
-    cout << green << completeTitle << reset;
-  }
   return 0;
 }
 
 // Definitions
-// Gets user input and converts that to a direction.
-Direction getMoveDirection() {
-  wchar_t input = getch();
-  switch (input) {
-    case KEY_DOWN:
-    case 'J':
-    case 'j':
-      return DOWN;
-    case KEY_UP:
-    case 'K':
-    case 'k':
-      return UP;
-    case KEY_LEFT:
-    case 'H':
-    case 'h':
-      return LEFT;
-    case KEY_RIGHT:
-    case 'L':
-    case 'l':
-      return RIGHT;
-    case 'Q':
-    case 'q':
-      return EXIT;
-    case '\'':
-    case '\"':
-      return HELP;
-    case '?':
-    case '/':
-      return SOLVE;
-    default:
-      return NONE;
-  }
-}
-// Called before app exits in order to properly release terminal from NCurses.
-void ExitApp() {
-  endwin();
-  exit(0);
-}
-void SaveMaze() {
+void SaveMaze(MazeController& mc) {
   bool tryAgain = true;
   do {
-    cout << yellow
-         << "Would you like to save the game? (Y/n): "
-         << reset;
+    cout << yellow << "Would you like to save the game? (Y/n): " << reset;
     if (Campbell::Strings::getYesNo(true)) {
       cout << yellow
            << "Please enter the name of the file you would like to save to: "
@@ -305,7 +177,7 @@ void SaveMaze() {
         cout << green << "Game successfull saved.\n" << reset;
         tryAgain = false;
       } else {
-        cout << red << "Game failed to saved.\n" << reset;
+        cout << red << "Game failed to save.\n" << reset;
       }
     } else {
       cout << red << "Not saving.\n" << reset;
@@ -313,15 +185,9 @@ void SaveMaze() {
     }
   } while (tryAgain);
 }
-void ExitMaze() {
-  if (!mc.isComplete()) mc.save("lastsession.dat");
-  else remove("lastsession.dat");
-  erase();
-  clear();
-  endwin();
-}
 // Catches Ctrl+C in order to call ExitApp properly.
 void interruptHandler(int s) {
   (void)s;
-  ExitApp();
+  endwin();
+  exit(0);
 }

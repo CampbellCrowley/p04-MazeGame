@@ -1,5 +1,6 @@
 #ifndef MAZE_H
 #define MAZE_H
+#include <curses.h>
 #include <vector>
 
 // Data that defines the maze and the characters to read from a file.
@@ -16,19 +17,53 @@ enum TileData {
 };
 enum Direction { UP, DOWN, LEFT, RIGHT, NONE, EXIT, HELP, SOLVE };
 typedef std::vector<std::vector<TileData> > Maze;
+const char *completeTitle =  // Maze Complete!
+    "                                    :::   :::       :::     ::::::::: "
+    "::::::::::                     \n                                  :+:+: "
+    ":+:+:    :+: :+:        :+:  :+:                             \n           "
+    "                     +:+ +:+:+ +:+  +:+   +:+      +:+   +:+              "
+    "                \n                               +#+  +:+  +#+ "
+    "+#++:++#++:    +#+    +#++:++#                          \n                "
+    "              +#+       +#+ +#+     +#+   +#+     +#+                     "
+    "           \n                             #+#       #+# #+#     #+#  #+#  "
+    "    #+#                                 \n                            ### "
+    "      ### ###     ### ######### ##########                           \n   "
+    "   ::::::::   ::::::::    :::   :::   :::::::::  :::        :::::::::: "
+    "::::::::::: :::::::::: ::: \n    :+:    :+: :+:    :+:  :+:+: :+:+:  :+:  "
+    "  :+: :+:        :+:            :+:     :+:        :+:  \n   +:+        "
+    "+:+    +:+ +:+ +:+:+ +:+ +:+    +:+ +:+        +:+            +:+     +:+ "
+    "       +:+   \n  +#+        +#+    +:+ +#+  +:+  +#+ +#++:++#+  +#+       "
+    " +#++:++#       +#+     +#++:++#   +#+    \n +#+        +#+    +#+ +#+    "
+    "   +#+ +#+        +#+        +#+            +#+     +#+        +#+     "
+    "\n#+#    #+# #+#    #+# #+#       #+# #+#        #+#        #+#           "
+    " #+#     #+#                 \n########   ########  ###       ### ###     "
+    "   ########## ##########     ###     ########## ###       \n";
 
 class MazeController {
  public:
   MazeController() {
     isSolutionValid = false;
+    isWinOpen_ = false;
     lastCols = 0;
     lastRows = 0;
   }
+  ~MazeController() { endWin(); }
+
+  // Possibly save, then exit the game.
+  void Exit(bool shouldSave = false);
+  bool isWinOpen() const { return isWinOpen_; }
+  // Takes over control flow and only returns once the user has requested exit.
+  void playGame(int generateRows = -1, int generateCols = -1);
 
   // Loads new maze from file. Returns if this succeeded.
   bool import(const char* filename);
+  // Import given maze.
+  void import(const Maze &newMaze) { maze = newMaze; }
+
   // Saves current maze to file. Returns if this succeeded.
   bool save(const char* filename);
+  // Return the current maze instance.
+  Maze &getMaze() { return maze; }
 
   // Computes all solutions for the maze and fills solution with the map. Uses
   // Dead-end Filling.
@@ -91,6 +126,11 @@ class MazeController {
   };
 
  protected:
+  // Starts curses window.
+  void startWin();
+  // Ends curses window.
+  void endWin();
+
   // Checks if the TileData is walkable.
   bool isEmpty(const TileData tile) const {
     return (tile == EMPTY || tile == START || tile == END || tile == PREVIOUS ||
@@ -103,7 +143,39 @@ class MazeController {
   // Converts a TileData to color and sets color to screen.
   static void setColor(const TileData &input);
   static void unsetColor(const TileData &input);
-
+  // Gets user input and converts that to a direction.
+  Direction getMoveDirection() const {
+    wchar_t input = getch();
+    switch (input) {
+      case KEY_DOWN:
+      case 'J':
+      case 'j':
+        return DOWN;
+      case KEY_UP:
+      case 'K':
+      case 'k':
+        return UP;
+      case KEY_LEFT:
+      case 'H':
+      case 'h':
+        return LEFT;
+      case KEY_RIGHT:
+      case 'L':
+      case 'l':
+        return RIGHT;
+      case 'Q':
+      case 'q':
+        return EXIT;
+      case '\'':
+      case '\"':
+        return HELP;
+      case '?':
+      case '/':
+        return SOLVE;
+      default:
+        return NONE;
+    }
+  }
 
  private:
   // Picks a random empty tile around a coordinate (x,y).
@@ -127,6 +199,7 @@ class MazeController {
   // The previously inputted screen dimensions.
   unsigned int lastCols;
   unsigned int lastRows;
+  bool isWinOpen_;
 
 };  // class MazeController
 
