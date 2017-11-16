@@ -19,7 +19,11 @@ typedef std::vector<std::vector<TileData> > Maze;
 
 class MazeController {
  public:
-  MazeController() { isSolutionValid = false; }
+  MazeController() {
+    isSolutionValid = false;
+    lastCols = 0;
+    lastRows = 0;
+  }
 
   // Loads new maze from file. Returns if this succeeded.
   bool import(const char* filename);
@@ -28,16 +32,21 @@ class MazeController {
 
   // Computes all solutions for the maze and fills solution with the map. Uses
   // Dead-end Filling.
-  void solve();
+  void solve() { solve(maze, solution); }
+  void solve(const Maze &maze, Maze &solution);
   // Generates a maze using a Randomized Prim's Algorithm of the given
   // dimensions.
-  void generate(unsigned int rows, unsigned int cols);
+  void generate(unsigned int rows, unsigned int cols) {
+    generate(rows, cols, maze);
+  }
+  void generate(unsigned int rows, unsigned int cols, Maze &maze);
   // Prints maze to screen.
-  void print(int cols = 0, int rows = 0);
+  void print(int cols = 0, int rows = 0) { print(cols, rows, maze); }
+  void print(int cols, int rows, const Maze &maze);
   // If the player is in the maze exit.
   bool isComplete() const;
   // Move the player in a direction. Returns if the player actually moved.
-  bool move(Direction dir);
+  bool move(Direction dir, bool godMode = false);
 
   void invalidateSolution() {
     isSolutionValid = false;
@@ -45,8 +54,16 @@ class MazeController {
   }
 
   // Maze dimensions
-  unsigned int height() const { return maze.size(); }
-  unsigned int width() const { return (height() > 0 ? maze[0].size() : 0); }
+  unsigned int height() const { return height(maze); }
+  unsigned int width() const { return width(maze); }
+  template <typename T>
+  unsigned int height(const std::vector<T> &maze) const {
+    return maze.size();
+  }
+  template <typename T>
+  unsigned int width(const std::vector<std::vector<T> > &maze) const {
+    return (height(maze) > 0 ? maze[0].size() : 0);
+  }
 
   // Symbols that are shown on the screen. Different from TileData to allow for
   // color or different symbols than those used in the files.
@@ -80,7 +97,7 @@ class MazeController {
             tile == HINT);
   }
   // Converts a character to known TileData.
-  static TileData charToTile(const char input);
+  static TileData charToTile(const char &input);
   // Converts a TileData to symbol to display.
   static char tileToSymbol(const TileData &input);
   // Converts a TileData to color and sets color to screen.
@@ -90,14 +107,14 @@ class MazeController {
 
  private:
   // Picks a random empty tile around a coordinate (x,y).
-  std::vector<int> pickRandomNeighbor(std::vector<int> coords) const;
+  std::vector<int> pickRandomNeighbor(const std::vector<int> &coords) const;
   // Sets surrounding tiles around coord to FRONTIER and adds them to the
   // frontier array.
   void addFontierCells(const std::vector<int> coords,
-                       std::vector<std::vector<int> > &input);
-  // Sets tiles between the two coords to EMPTY.
-  void mergeNeighborAndFrontier(std::vector<int> frontier,
-                                std::vector<int> neighbor);
+                       std::vector<std::vector<int> > &frontierArray);
+  // Sets tiles inclusively between the two coords to EMPTY.
+  void mergeNeighborAndFrontier(const std::vector<int> &frontier,
+                                const std::vector<int> &neighbor);
 
   // Current coordinates of player from top left of grid.
   unsigned int current_x, current_y;

@@ -59,22 +59,31 @@ void ExitApp();
 void SaveMaze();
 void ExitMaze();
 void interruptHandler(int s);
-int Main();
+int Main(bool firstRun);
 
 // Entry
 int main(int /*argc*/, const char** /*argv[]*/) {
   cout << cyan << title;
-  while(Main() == 0) {}
+  bool firstRun = true;
+  try {
+    while (Main(firstRun) == 0) { firstRun = false; }
+  } catch (runtime_error const& e) {
+    cerr << "Exiting due to runtime error:\n" << e.what() << endl;
+  } catch (exception const& e) {
+    cerr << "Exiting due to exception:\n" << e.what() << endl;
+  } catch (...) {
+    cerr << "Exiting due to unknown failure.\n";
+  }
   return 0;
 }
 
 // Main
-int Main() {
+int Main(bool firstRun) {
   struct stat buf;
   bool loadLastSession = false;
   cout << flush;
   cin.clear();
-  if (mc.width() == 0) {
+  if (firstRun) {
     if (stat("lastsession.dat", &buf) != -1) {
       cout << yellow << "I found a previous session data. Would you like to "
                         "load it? (Y/n): "
@@ -137,17 +146,15 @@ int Main() {
     default:
     case 4:
       // TODO: Restrict sizes to larger than a value.
-      do {
         cout << "Enter number of rows: ";
         getline(cin, option);
-      } while (!Campbell::Strings::isNumber(option.c_str()));
-      rows = Campbell::Strings::toNumber(option.c_str());
-      do {
+        if (!Campbell::Strings::isNumber(option.c_str())) return 0;
+        rows = Campbell::Strings::toNumber(option.c_str());
         cout << "Enter number of columns: ";
         getline(cin, option);
-      } while (!Campbell::Strings::isNumber(option.c_str()));
-      cols = Campbell::Strings::toNumber(option.c_str());
-      break;
+        if (!Campbell::Strings::isNumber(option.c_str())) return 0;
+        cols = Campbell::Strings::toNumber(option.c_str());
+        break;
     case 5:
       SaveMaze();
       return 0;
@@ -210,26 +217,26 @@ int Main() {
   mc.print(width, height);
   int lastWidth = width;
   int lastHeight = height;
+  bool justFinished = true;
   while (nextDirection != EXIT) {
     nextDirection = getMoveDirection();
     getmaxyx(stdscr, height, width);
-    if (mc.move(nextDirection)) {
+    if (mc.move(nextDirection, !justFinished)) {
       mc.print(width, height);
     } else if (lastWidth != width || lastHeight != height) {
       mc.print(width, height);
     }
-    if (mc.isComplete()) {
+    if (mc.isComplete() && justFinished) {
+      justFinished = false;
       mc.move(SOLVE);
       mc.print(width, height);
       usleep(100000);
       wattron(stdscr, COLOR_PAIR(10));
       move(height / 2 - 10, 0);
       addstr(completeTitle);
-      addstr("Press 'Q' to quit\n");
+      addstr("Press 'Q' to quit\nMovement is unlocked.\n");
       wattroff(stdscr, COLOR_PAIR(10));
       refresh();
-      while (getMoveDirection() == NONE) {}
-      break;
     }
     lastWidth = width;
     lastHeight = height;
