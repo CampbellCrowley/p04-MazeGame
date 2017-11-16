@@ -7,13 +7,12 @@
 #include <iostream>
 #include "CampbellLib/CampbellLib.h"
 #include "Maze.h"
+#include "Menu.h"
 
 using namespace std;
 using namespace Campbell::Color;
 
 // Global vars
-int width = 0;
-int height = 0;
 const char* title =
 "        :::   :::       :::     ::::::::: ::::::::::                       \n"
 "      :+:+: :+:+:    :+: :+:        :+:  :+:                               \n"
@@ -31,17 +30,18 @@ const char* title =
 "###       ### ###     ###  ########     ###     ########## ###    ###      \n";
 
 // Prototypes
-void SaveMaze(MazeController& mc);
+void SaveMaze(Maze::MazeController& mc);
 void interruptHandler(int s);
-int Main(MazeController& mc, bool firstRun);
+int Main(Maze::MazeController& mc, Menu::Menu menu, bool firstRun);
 
 // Entry
 int main(int /*argc*/, const char** /*argv[]*/) {
   cout << cyan << title;
   bool firstRun = true;
-  MazeController mc;
+  Maze::MazeController mc;
+  Menu::Menu menu(mc, title);
   try {
-    while (Main(mc, firstRun) == 0) { firstRun = false; }
+    while (Main(mc, menu, firstRun) == 0) firstRun = false;
   } catch (...) {
     endwin();
     cerr << "Exiting due to unknown failure.\n";
@@ -51,13 +51,13 @@ int main(int /*argc*/, const char** /*argv[]*/) {
 }
 
 // Main
-int Main(MazeController& mc, bool firstRun) {
-  struct stat buf;
+int Main(Maze::MazeController& mc, Menu::Menu menu, bool firstRun) {
   bool loadLastSession = false;
   cout << flush;
   cin.clear();
   if (firstRun) {
-    if (stat("lastsession.dat", &buf) != -1) {
+    struct stat buf;
+    if (stat(Maze::lastSessionFilename, &buf) != -1) {
       cout << yellow << "I found a previous session data. Would you like to "
                         "load it? (Y/n): "
            << reset;
@@ -67,6 +67,7 @@ int Main(MazeController& mc, bool firstRun) {
   string option = "";
   int selection = 0;
   if (!loadLastSession) {
+    menu.startMenu();
     do {
       cout << yellow << "\n\nControls:\n";
       cout << "UP:      \u2191 or K\n";
@@ -98,7 +99,7 @@ int Main(MazeController& mc, bool firstRun) {
              (mc.width() == 0 && selection == 5) || selection > 7);
   } else {
     selection = 6;
-    option = "lastsession.dat";
+    option = Maze::lastSessionFilename;
   }
   int rows = -1;
   int cols = -1;
@@ -162,7 +163,7 @@ int Main(MazeController& mc, bool firstRun) {
 }
 
 // Definitions
-void SaveMaze(MazeController& mc) {
+void SaveMaze(Maze::MazeController& mc) {
   bool tryAgain = true;
   do {
     cout << yellow << "Would you like to save the game? (Y/n): " << reset;

@@ -6,6 +6,7 @@
 #include <ctime>
 #include <fstream>
 
+namespace Maze {
 const char MazeController::TileSymbols::EMPTY = '$';
 const char MazeController::TileSymbols::WALL = '#';
 const char MazeController::TileSymbols::START = '@';
@@ -47,7 +48,7 @@ void MazeController::endWin() {
   isWinOpen_ = false;
 }
 
-void MazeController::playGame(int generateRows, int generateCols) {
+void MazeController::play(int generateRows, int generateCols) {
   unsigned int height, width;
   getmaxyx(stdscr, height, width);
   startWin();
@@ -93,14 +94,14 @@ void MazeController::playGame(int generateRows, int generateCols) {
   Exit(justFinished);
 }
 void MazeController::Exit(bool shouldSave) {
-  if (shouldSave) save("lastsession.dat");
-  else remove("lastsession.dat");
+  if (shouldSave) save(lastSessionFilename);
+  else remove(lastSessionFilename);
   erase();
   clear();
   endWin();
 }
 
-bool MazeController::import(const char *filename) {
+bool MazeController::load(const char *filename) {
   std::fstream file(filename, std::ios::in);
   if (!file.fail()) {
     std::string line;
@@ -590,3 +591,4 @@ void MazeController::solve(const Maze &maze, Maze &solution) {
   } while (didSomething);
   isSolutionValid = true;
 }
+}  // namespace Maze

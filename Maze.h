@@ -3,6 +3,7 @@
 #include <curses.h>
 #include <vector>
 
+namespace Maze {
 // Data that defines the maze and the characters to read from a file.
 enum TileData {
   EMPTY = 'E',
@@ -17,6 +18,7 @@ enum TileData {
 };
 enum Direction { UP, DOWN, LEFT, RIGHT, NONE, EXIT, HELP, SOLVE };
 typedef std::vector<std::vector<TileData> > Maze;
+const char *lastSessionFilename = "lastsession.dat";
 const char *completeTitle =  // Maze Complete!
     "                                    :::   :::       :::     ::::::::: "
     "::::::::::                     \n                                  :+:+: "
@@ -53,15 +55,15 @@ class MazeController {
   void Exit(bool shouldSave = false);
   bool isWinOpen() const { return isWinOpen_; }
   // Takes over control flow and only returns once the user has requested exit.
-  void playGame(int generateRows = -1, int generateCols = -1);
+  void play(int generateRows = -1, int generateCols = -1);
 
   // Loads new maze from file. Returns if this succeeded.
-  bool import(const char* filename);
+  bool load(const char *filename);
   // Import given maze.
-  void import(const Maze &newMaze) { maze = newMaze; }
+  void load(const Maze &newMaze) { maze = newMaze; }
 
   // Saves current maze to file. Returns if this succeeded.
-  bool save(const char* filename);
+  bool save(const char *filename);
   // Return the current maze instance.
   Maze &getMaze() { return maze; }
 
@@ -202,6 +204,7 @@ class MazeController {
   bool isWinOpen_;
 
 };  // class MazeController
+}  // namespace Maze
 
 #include "Maze.cpp"
 #endif  // ifndef MAZE_H
