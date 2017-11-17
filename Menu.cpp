@@ -4,9 +4,10 @@ namespace Menu {
 void MenuController::startMenu() {
   openMenu();
   Input nextInput = NONE;
-  while(nextInput != QUIT) {
+  while (nextInput != QUIT && isWinOpen_) {
     nextInput = getInput();
     if (move(nextInput)) printMenu();
+    if (!isWinOpen_) break;
   }
 }
 void MenuController::openMenu() {
@@ -44,21 +45,21 @@ void MenuController::printMenu() const {
     }
   }
   setColor(INSTRUCTIONS);
-  ::move(16, 20);
+  ::move(startPos, 20);
   addstr("Controls:");
-  ::move(17, 20);
+  ::move(startPos+1, 20);
   addstr("UP:      K or \u2191 (Up arrow)");
-  ::move(18, 20);
+  ::move(startPos+2, 20);
   addstr("DOWN:    J or \u2193 (Down arrow)");
-  ::move(19, 20);
+  ::move(startPos+3, 20);
   addstr("LEFT:    H or \u2191 (Left arrow)");
-  ::move(20, 20);
+  ::move(startPos+4, 20);
   addstr("RIGHT:   L or \u2192 (Right arrow)");
-  ::move(21, 20);
+  ::move(startPos+5, 20);
   addstr("HINT:    \"");
-  ::move(22, 20);
+  ::move(startPos+6, 20);
   addstr("GIVE UP: ?");
-  ::move(23, 20);
+  ::move(startPos+7, 20);
   addstr("QUIT:    Q");
   unsetColor(INSTRUCTIONS);
   ::move(0, 0);
@@ -139,8 +140,7 @@ bool MenuController::move(Input direction) {
     }
     case SELECT:
       closeMenu();
-      optionList[currentIndex].selectAction();
-      openMenu();
+      if (optionList[currentIndex].selectAction() != 100) openMenu();
       return false;
     case LEFT:
     case RIGHT:

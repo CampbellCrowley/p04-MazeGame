@@ -18,7 +18,7 @@ enum TileData {
 };
 enum Direction { UP, DOWN, LEFT, RIGHT, NONE, EXIT, HELP, SOLVE };
 typedef std::vector<std::vector<TileData> > Maze;
-const char *lastSessionFilename = "lastsession.dat";
+const char *lastSessionFilename = "saves/lastsession.dat";
 const char *completeTitle =  // Maze Complete!
     "                                    :::   :::       :::     ::::::::: "
     "::::::::::                     \n                                  :+:+: "

@@ -60,13 +60,16 @@ class MenuController {
   // Adds an option to the menu list.
   Option* addOption(const Option &newOption) {
     optionList.push_back(newOption);
+    if (newOption.isHighlighted) currentIndex = optionList.size() - 1;
     return &optionList[optionList.size() - 1];
   }
+  void clearOptions() { optionList.clear(); }
 
   // Returns whether the menu is open or not.
   bool isWinOpen() const { return isWinOpen_; }
   // Returns list of current options.
-  const std::vector<Option>& getOptionList() const { return optionList; }
+  std::vector<Option>& getOptionList() { return optionList; }
+  int getCurrentIndex() const { return currentIndex; }
 
  protected:
   // Gets the user's input.

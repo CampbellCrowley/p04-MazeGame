@@ -59,7 +59,7 @@ void MazeController::play(int generateRows, int generateCols) {
   if (generateRows > 0 && generateCols > 0) {
     generate(generateRows, generateCols);
   } else if (MazeController::width() == 0) {
-    generate(51, 51);
+    Exit(false);
   }
 
   Direction nextDirection = NONE;
@@ -392,7 +392,7 @@ void MazeController::unsetColor(const TileData &input) {
 
 void MazeController::generate(unsigned int rows, unsigned int cols,
                               Maze &maze) {
-  load("loading.dat");
+  load("data/loading.dat");
   print();
 
   maze.clear();
