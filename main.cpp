@@ -13,6 +13,7 @@ using namespace std;
 using namespace Campbell::Color;
 
 // Global vars
+Maze::MazeController* instance;
 const char* title =
 "        :::   :::       :::     ::::::::: ::::::::::                       \n"
 "      :+:+: :+:+:    :+: :+:        :+:  :+:                               \n"
@@ -32,14 +33,28 @@ const char* title =
 // Prototypes
 void SaveMaze(Maze::MazeController& mc);
 void interruptHandler(int s);
-int Main(Maze::MazeController& mc, Menu::Menu menu, bool firstRun);
+int Main(Maze::MazeController& mc, Menu::MenuController menu, bool firstRun);
+int playEasy();
+int playMedium();
+int playHard();
+int playCustom();
+int saveButton();
+int loadButton();
+int ExitApp();
 
 // Entry
 int main(int /*argc*/, const char** /*argv[]*/) {
-  cout << cyan << title;
   bool firstRun = true;
   Maze::MazeController mc;
-  Menu::Menu menu(mc, title);
+  instance = &mc;
+  Menu::MenuController menu(title);
+  menu.addOption(Menu::MenuController::Option("Easy", &playEasy, true, true));
+  menu.addOption(Menu::MenuController::Option("Medium", &playMedium));
+  menu.addOption(Menu::MenuController::Option("Hard", &playHard));
+  menu.addOption(Menu::MenuController::Option("Custom", &playCustom));
+  menu.addOption(Menu::MenuController::Option("Save Maze", &saveButton));
+  menu.addOption(Menu::MenuController::Option("Load Maze", &loadButton));
+  menu.addOption(Menu::MenuController::Option("Quit", &ExitApp));
   try {
     while (Main(mc, menu, firstRun) == 0) firstRun = false;
   } catch (...) {
@@ -51,10 +66,19 @@ int main(int /*argc*/, const char** /*argv[]*/) {
 }
 
 // Main
-int Main(Maze::MazeController& mc, Menu::Menu menu, bool firstRun) {
+int Main(Maze::MazeController& mc, Menu::MenuController menu, bool firstRun) {
+  // Handle execution interrupt.
+  struct sigaction sigIntHandler;
+  sigIntHandler.sa_handler = interruptHandler;
+  sigemptyset(&sigIntHandler.sa_mask);
+  sigIntHandler.sa_flags = 0;
+  sigaction(SIGINT, &sigIntHandler, NULL);
+
   bool loadLastSession = false;
   cout << flush;
   cin.clear();
+
+  // Check if use has a previous unfinished maze.
   if (firstRun) {
     struct stat buf;
     if (stat(Maze::lastSessionFilename, &buf) != -1) {
@@ -64,102 +88,20 @@ int Main(Maze::MazeController& mc, Menu::Menu menu, bool firstRun) {
       loadLastSession = Campbell::Strings::getYesNo(true);
     }
   }
-  string option = "";
-  int selection = 0;
   if (!loadLastSession) {
     menu.startMenu();
-    do {
-      cout << yellow << "\n\nControls:\n";
-      cout << "UP:      \u2191 or K\n";
-      cout << "DOWN:    \u2193 or J\n";
-      cout << "LEFT:    \u2191 or H\n";
-      cout << "RIGHT:   \u2192 or L\n";
-      cout << "HINT:    \"\n";
-      cout << "GIVE UP: ?\n";
-      cout << "QUIT:    Q\n" << reset;
-      cout << "Please select an option:\n";
-      cout << "1) Easy/Small\n";
-      cout << "2) Medium\n";
-      cout << "3) Hard/Large\n";
-      cout << "4) Custom size\n";
-      if (mc.width() == 0) cout << red;
-      cout << "5) Save maze\n";
-      if (mc.width() == 0) cout << reset;
-      cout << "6) Load maze\n";
-      cout << "7) Quit Game\n";
-      cout << flush;
-      cin.clear();
-      getline(cin, option);
-      if (option[0] == 'q' || option[0] == 'Q') {
-        selection = 7;
-        break;
-      }
-      selection = Campbell::Strings::toNumber(option.c_str());
-    } while (!Campbell::Strings::isNumber(option.c_str()) || selection < 1 ||
-             (mc.width() == 0 && selection == 5) || selection > 7);
+    return 1;
   } else {
-    selection = 6;
-    option = Maze::lastSessionFilename;
-  }
-  int rows = -1;
-  int cols = -1;
-  switch (selection) {
-    case 1:
-      rows = 11;
-      cols = 11;
-      break;
-    case 2:
-      rows = 51;
-      cols = 51;
-      break;
-    case 3:
-      rows = 101;
-      cols = 101;
-      break;
-    default:
-    case 4:
-      // TODO: Restrict sizes to larger than a value.
-        cout << "Enter number of rows: ";
-        getline(cin, option);
-        if (!Campbell::Strings::isNumber(option.c_str())) return 0;
-        rows = Campbell::Strings::toNumber(option.c_str());
-        cout << "Enter number of columns: ";
-        getline(cin, option);
-        if (!Campbell::Strings::isNumber(option.c_str())) return 0;
-        cols = Campbell::Strings::toNumber(option.c_str());
-        break;
-    case 5:
-      SaveMaze(mc);
+    string option = Maze::lastSessionFilename;
+    if (!mc.load(option.c_str())) {
+      cout << red << "Failed to open file.\n" << reset;
       return 0;
-      break;
-    case 6:
-      if (!loadLastSession) {
-        cout << "Enter a filename to load: ";
-        getline(cin, option);
-      }
-      if (!mc.import(option.c_str())) {
-        cout << red << "Failed to open file.\n" << reset;
-        return 0;
-      } else {
-        break;
-      }
-      loadLastSession = false;
-      break;
-    case 7:
-      return 1;
+    } else {
+      mc.play();
+    }
+    loadLastSession = false;
+    return 0;
   }
-
-  // Handle execution interrupt.
-  struct sigaction sigIntHandler;
-  sigIntHandler.sa_handler = interruptHandler;
-  sigemptyset(&sigIntHandler.sa_mask);
-  sigIntHandler.sa_flags = 0;
-  sigaction(SIGINT, &sigIntHandler, NULL);
-
-  // Play Game
-  mc.playGame(rows, cols);
-
-  return 0;
 }
 
 // Definitions
@@ -189,6 +131,30 @@ void SaveMaze(Maze::MazeController& mc) {
 // Catches Ctrl+C in order to call ExitApp properly.
 void interruptHandler(int s) {
   (void)s;
+  ExitApp();
+}
+int playEasy() {
+  instance->play(11, 11);
+  return 1;
+}
+int playMedium() {
+  instance->play(51, 51);
+  return 1;
+}
+int playHard() {
+  instance->play(101, 101);
+  return 1;
+}
+int playCustom() {
+  // TODO: Get user input for numbers here.
+  int rows = 0, cols = 0;
+  instance->play(rows, cols);
+  return 1;
+}
+int saveButton() { return 0; }
+int loadButton() { return 0; }
+int ExitApp() {
   endwin();
   exit(0);
+  return 0;
 }
