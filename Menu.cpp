@@ -20,7 +20,10 @@ void MenuController::printMenu() const {
   setColor(TITLE);
   addstr(title);
   unsetColor(TITLE);
-  int startPos = 16;
+  int startPos;
+  int titleWidth;
+  getyx(stdscr, startPos, titleWidth);
+  startPos += 2;
   for (int i = 0; i < (int)optionList.size(); ++i) {
     ::move(startPos + i, 0);
     if (optionList[i].isHighlighted) {
@@ -111,6 +114,10 @@ Input MenuController::getInput() const {
       return QUIT;
     case KEY_ENTER:
     case KEY_HOME:
+    case '\'':
+    case '\"':
+    case '/':
+    case '?':
       return SELECT;
     default:
       return NONE;
@@ -152,6 +159,6 @@ int MenuController::getNextIndex(Input direction) const {
   }
   return currentIndex;
 }
-void MenuController::setColor(int index) const { attron(COLOR_PAIR(index)); }
-void MenuController::unsetColor(int index) const { attroff(COLOR_PAIR(index)); }
+void MenuController::setColor(Colors index) const { attron(COLOR_PAIR(index)); }
+void MenuController::unsetColor(Colors index) const { attroff(COLOR_PAIR(index)); }
 }  // namespace Menu

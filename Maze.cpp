@@ -392,10 +392,14 @@ void MazeController::unsetColor(const TileData &input) {
 
 void MazeController::generate(unsigned int rows, unsigned int cols,
                               Maze &maze) {
+  load("loading.dat");
+  print();
+
   maze.clear();
   invalidateSolution();
   maze = std::vector<std::vector<TileData> >(
       rows, std::vector<TileData>(cols, UNKNOWN));
+
 
   srand(time(NULL));
 
@@ -411,7 +415,6 @@ void MazeController::generate(unsigned int rows, unsigned int cols,
     addFontierCells(coord, frontierTiles);
   }
 
-  int iterations = 0;
   while (frontierTiles.size() > 0) {
     int selectedFrontierCell = rand() % frontierTiles.size();
     std::vector<int> selectedNeighborCell =
@@ -422,9 +425,6 @@ void MazeController::generate(unsigned int rows, unsigned int cols,
       addFontierCells(frontierTiles[selectedFrontierCell], frontierTiles);
     }
     frontierTiles.erase(frontierTiles.begin() + selectedFrontierCell);
-    int power = log10(++iterations);
-    if (power < 1) power = 1;
-    if (iterations % (int)pow(power, power - 1) == 0) print();
   }
   for (unsigned int i = 0; i < height(); ++i) {
     for (unsigned int j = 0; j < width(); ++j) {

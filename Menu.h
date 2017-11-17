@@ -3,7 +3,9 @@
 #include <vector>
 
 namespace Menu {
+// Available inputs.
 enum Input { UP, DOWN, LEFT, RIGHT, SELECT, QUIT, NONE };
+// Color pair indexes.
 enum Colors {
   HIGHLIGHTED = 50,
   NORMAL,
@@ -20,6 +22,7 @@ class MenuController {
   }
   ~MenuController() { endWin(); }
 
+  // An option to show in the menu list.
   struct Option {
     Option(const char* text, int (*selectAction)(),
            bool isSelectable = true, bool isHighlighted = false)
@@ -28,9 +31,13 @@ class MenuController {
           isSelectable(isSelectable),
           isHighlighted(isHighlighted) {}
 
+    // The text of the option to show in the menu.
     const char* text;
+    // The function to call when the button is selected.
     int (*selectAction)();
+    // Whether or not the button can be selected.
     bool isSelectable;
+    // If the button is highlighted.
     bool isHighlighted;
   };
 
@@ -50,13 +57,13 @@ class MenuController {
   // moved.
   bool move(Input direction);
 
-  // Adds an option to the menu.
+  // Adds an option to the menu list.
   Option* addOption(const Option &newOption) {
     optionList.push_back(newOption);
     return &optionList[optionList.size() - 1];
   }
 
-  // Returns if the menu is open.
+  // Returns whether the menu is open or not.
   bool isWinOpen() const { return isWinOpen_; }
   // Returns list of current options.
   const std::vector<Option>& getOptionList() const { return optionList; }
@@ -66,13 +73,19 @@ class MenuController {
   Input getInput() const;
   // Get the next Option that isSelectable in the given direction.
   int getNextIndex(Input direction) const;
-  void setColor(int index) const;
-  void unsetColor(int index) const;
+
+  // Set index based off Colors
+  void setColor(Colors index) const;
+  void unsetColor(Colors index) const;
 
  private:
+  // Current selected menu option index in option list.
   int currentIndex;
+  // Stores whether the window is open or not.
   bool isWinOpen_;
+  // List of all options to show in the menu.
   std::vector<Option> optionList;
+  // Title to show at the top before the options.
   const char* title;
 };
 }  // namespace Menu
