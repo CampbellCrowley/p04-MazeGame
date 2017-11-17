@@ -4,6 +4,14 @@
 
 namespace Menu {
 enum Input { UP, DOWN, LEFT, RIGHT, SELECT, QUIT, NONE };
+enum Colors {
+  HIGHLIGHTED = 50,
+  NORMAL,
+  TITLE,
+  INSTRUCTIONS,
+  BACKGROUND,
+  DISABLED
+};
 class MenuController {
  public:
   MenuController(const char* title = "") : title(title) {
@@ -43,7 +51,10 @@ class MenuController {
   bool move(Input direction);
 
   // Adds an option to the menu.
-  void addOption(Option newOption) { optionList.push_back(newOption); }
+  Option* addOption(const Option &newOption) {
+    optionList.push_back(newOption);
+    return &optionList[optionList.size() - 1];
+  }
 
   // Returns if the menu is open.
   bool isWinOpen() const { return isWinOpen_; }

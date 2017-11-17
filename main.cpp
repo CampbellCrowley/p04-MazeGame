@@ -14,6 +14,7 @@ using namespace Campbell::Color;
 
 // Global vars
 Maze::MazeController* instance;
+Menu::MenuController::Option* saveOption;
 const char* title =
 "        :::   :::       :::     ::::::::: ::::::::::                       \n"
 "      :+:+: :+:+:    :+: :+:        :+:  :+:                               \n"
@@ -33,7 +34,6 @@ const char* title =
 // Prototypes
 void SaveMaze(Maze::MazeController& mc);
 void interruptHandler(int s);
-int Main(Maze::MazeController& mc, Menu::MenuController menu, bool firstRun);
 int playEasy();
 int playMedium();
 int playHard();
@@ -44,29 +44,19 @@ int ExitApp();
 
 // Entry
 int main(int /*argc*/, const char** /*argv[]*/) {
-  bool firstRun = true;
   Maze::MazeController mc;
   instance = &mc;
   Menu::MenuController menu(title);
+
   menu.addOption(Menu::MenuController::Option("Easy", &playEasy, true, true));
   menu.addOption(Menu::MenuController::Option("Medium", &playMedium));
   menu.addOption(Menu::MenuController::Option("Hard", &playHard));
   menu.addOption(Menu::MenuController::Option("Custom", &playCustom));
-  menu.addOption(Menu::MenuController::Option("Save Maze", &saveButton));
+  saveOption = menu.addOption(
+      Menu::MenuController::Option("Save Maze", &saveButton, false));
   menu.addOption(Menu::MenuController::Option("Load Maze", &loadButton));
   menu.addOption(Menu::MenuController::Option("Quit", &ExitApp));
-  try {
-    while (Main(mc, menu, firstRun) == 0) firstRun = false;
-  } catch (...) {
-    endwin();
-    cerr << "Exiting due to unknown failure.\n";
-    return 1;
-  }
-  return 0;
-}
 
-// Main
-int Main(Maze::MazeController& mc, Menu::MenuController menu, bool firstRun) {
   // Handle execution interrupt.
   struct sigaction sigIntHandler;
   sigIntHandler.sa_handler = interruptHandler;
@@ -74,34 +64,33 @@ int Main(Maze::MazeController& mc, Menu::MenuController menu, bool firstRun) {
   sigIntHandler.sa_flags = 0;
   sigaction(SIGINT, &sigIntHandler, NULL);
 
-  bool loadLastSession = false;
-  cout << flush;
-  cin.clear();
-
-  // Check if use has a previous unfinished maze.
-  if (firstRun) {
+  {
     struct stat buf;
     if (stat(Maze::lastSessionFilename, &buf) != -1) {
       cout << yellow << "I found a previous session data. Would you like to "
                         "load it? (Y/n): "
            << reset;
-      loadLastSession = Campbell::Strings::getYesNo(true);
+      if (Campbell::Strings::getYesNo(true)) {
+        string option = Maze::lastSessionFilename;
+        if (!mc.load(option.c_str())) {
+          cout << red << "Failed to open file.\n" << reset;
+          return 1;
+        } else {
+          mc.play();
+          saveOption->isSelectable = instance->width() > 0;
+        }
+      }
     }
   }
-  if (!loadLastSession) {
+
+  try {
     menu.startMenu();
+  } catch (...) {
+    endwin();
+    cerr << "Exiting due to unknown failure.\n";
     return 1;
-  } else {
-    string option = Maze::lastSessionFilename;
-    if (!mc.load(option.c_str())) {
-      cout << red << "Failed to open file.\n" << reset;
-      return 0;
-    } else {
-      mc.play();
-    }
-    loadLastSession = false;
-    return 0;
   }
+  return 0;
 }
 
 // Definitions
@@ -135,24 +124,44 @@ void interruptHandler(int s) {
 }
 int playEasy() {
   instance->play(11, 11);
+  saveOption->isSelectable = instance->width() > 0;
   return 1;
 }
 int playMedium() {
   instance->play(51, 51);
+  saveOption->isSelectable = instance->width() > 0;
   return 1;
 }
 int playHard() {
   instance->play(101, 101);
+  saveOption->isSelectable = instance->width() > 0;
   return 1;
 }
+// TODO: Make curses menu for choosing size.
 int playCustom() {
-  // TODO: Get user input for numbers here.
   int rows = 0, cols = 0;
+  string input;
+  cout << "Enter number of rows: ";
+  getline (cin, input);
+  rows = Campbell::Strings::toNumber(input.c_str());
+  cout << "Enter number of columns: ";
+  getline (cin, input);
+  cols = Campbell::Strings::toNumber(input.c_str());
   instance->play(rows, cols);
+  saveOption->isSelectable = instance->width() > 0;
   return 1;
 }
-int saveButton() { return 0; }
-int loadButton() { return 0; }
+// TODO: Get user input for save and load locations.
+int saveButton() { return instance->save("myfavoritemaze.dat"); }
+int loadButton() {
+  if (instance->load("myfavoritemaze.dat")) {
+    instance->play();
+    saveOption->isSelectable = instance->width() > 0;
+    return 1;
+  } else {
+    return 0;
+  }
+}
 int ExitApp() {
   endwin();
   exit(0);

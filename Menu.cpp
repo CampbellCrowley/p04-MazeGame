@@ -17,19 +17,48 @@ void MenuController::printMenu() const {
   if (!isWinOpen_) return;
   ::move(0, 0);
   clear();
+  setColor(TITLE);
   addstr(title);
-  addstr(
-      "\n\nControls:\nUP:      \u2191 or K\nDOWN:    \u2193 or J\nLEFT:    "
-      "\u2191 or H\nRIGHT:   \u2192 or L\nHINT:    \"\nGIVE UP: ?\nQUIT:    "
-      "Q\n");
+  unsetColor(TITLE);
+  int startPos = 16;
   for (int i = 0; i < (int)optionList.size(); ++i) {
-    if (optionList[i].isHighlighted) setColor(50);
-    else setColor(51);
+    ::move(startPos + i, 0);
+    if (optionList[i].isHighlighted) {
+      setColor(HIGHLIGHTED);
+      addch(' ');
+    } else if (!optionList[i].isSelectable) {
+      setColor(DISABLED);
+    } else {
+      setColor(NORMAL);
+    }
     addstr(optionList[i].text);
-    if (optionList[i].isHighlighted) unsetColor(50);
-    else unsetColor(51);
-    addch('\n');
+    if (optionList[i].isHighlighted) {
+      unsetColor(HIGHLIGHTED);
+    } else if (!optionList[i].isSelectable) {
+      unsetColor(DISABLED);
+    } else {
+      unsetColor(NORMAL);
+    }
   }
+  setColor(INSTRUCTIONS);
+  ::move(16, 20);
+  addstr("Controls:");
+  ::move(17, 20);
+  addstr("UP:      K or \u2191 (Up arrow)");
+  ::move(18, 20);
+  addstr("DOWN:    J or \u2193 (Down arrow)");
+  ::move(19, 20);
+  addstr("LEFT:    H or \u2191 (Left arrow)");
+  ::move(20, 20);
+  addstr("RIGHT:   L or \u2192 (Right arrow)");
+  ::move(21, 20);
+  addstr("HINT:    \"");
+  ::move(22, 20);
+  addstr("GIVE UP: ?");
+  ::move(23, 20);
+  addstr("QUIT:    Q");
+  unsetColor(INSTRUCTIONS);
+  ::move(0, 0);
   refresh();
 }
 void MenuController::closeMenu() { endWin(); }
@@ -41,8 +70,15 @@ void MenuController::startWin() {
   keypad(stdscr, TRUE);
   // Colors
   start_color();
-  init_pair(50, COLOR_CYAN, COLOR_BLACK);
-  init_pair(51, COLOR_WHITE, COLOR_BLACK);
+  init_pair(HIGHLIGHTED, COLOR_CYAN, COLOR_BLACK);
+  init_pair(NORMAL, COLOR_WHITE, COLOR_BLACK);
+  init_pair(TITLE, COLOR_CYAN, COLOR_BLACK);
+  init_pair(INSTRUCTIONS, COLOR_YELLOW, COLOR_BLACK);
+  init_pair(BACKGROUND, COLOR_BLACK, COLOR_BLACK);
+  init_pair(DISABLED, COLOR_RED, COLOR_BLACK);
+
+  bkgd(COLOR_PAIR(BACKGROUND));
+
   isWinOpen_ = true;
 }
 void MenuController::endWin() {
