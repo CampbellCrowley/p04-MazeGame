@@ -35,7 +35,7 @@ void MenuController::printMenu() const {
     } else {
       setColor(NORMAL);
     }
-    addstr(optionList[i].text);
+    addstr(optionList[i].text());
     if (optionList[i].isHighlighted) {
       unsetColor(HIGHLIGHTED);
     } else if (!optionList[i].isSelectable) {
@@ -55,6 +55,8 @@ void MenuController::printMenu() const {
   addstr("LEFT:    H or \u2191 (Left arrow)");
   ::move(startPos+4, 20);
   addstr("RIGHT:   L or \u2192 (Right arrow)");
+  ::move(startPos+5, 20);
+  addstr("SELECT:   Enter or HINT or GIVE UP");
   ::move(startPos+5, 20);
   addstr("HINT:    \"");
   ::move(startPos+6, 20);
@@ -103,18 +105,16 @@ Input MenuController::getInput() const {
     case KEY_LEFT:
     case 'H':
     case 'h':
-      // return LEFT;
-      return SELECT;
+      return LEFT;
     case KEY_RIGHT:
     case 'L':
     case 'l':
-      //return RIGHT;
-      return SELECT;
+      return RIGHT;
     case 'Q':
     case 'q':
       return QUIT;
+    case 10:
     case KEY_ENTER:
-    case KEY_HOME:
     case '\'':
     case '\"':
     case '/':
@@ -144,6 +144,11 @@ bool MenuController::move(Input direction) {
       return false;
     case LEFT:
     case RIGHT:
+      if (optionList[currentIndex].isNumber) {
+        optionList[currentIndex].number += direction == LEFT ? -1 : 1;
+        if (optionList[currentIndex].selectAction() == 100) closeMenu();
+      }
+      return true;
     case NONE:
     default:
       return false;

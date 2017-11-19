@@ -15,9 +15,13 @@ using namespace Campbell::Color;
 
 // Global vars
 Maze::MazeController* instance;
-int saveOptionIndex = 0;
 Menu::MenuController* loadMenu_;
+Menu::MenuController* customMenu_;
 Menu::MenuController* menu_;
+int saveOptionIndex = 0;
+int rowOptionIndex = 0;
+int colOptionIndex = 0;
+int confirmOptionIndex = 0;
 const char* savesDir = "./saves/";
 const char* title = // Maze Master
 "        :::   :::       :::     ::::::::: ::::::::::                       \n"
@@ -46,6 +50,14 @@ const char* loadTitle =  // Load Maze
     "    #+#       #+# #+#     #+#  #+#      #+#             \n########## "
     "########  ###     ### #########          ###       ### ###     ### "
     "######### ##########       \n";
+const char* customTitle =  // Custom
+    "      ::::::::  :::    :::  :::::::: ::::::::::: ::::::::    :::   ::: \n"
+    "    :+:    :+: :+:    :+: :+:    :+:    :+:    :+:    :+:  :+:+: :+:+: \n"
+    "   +:+        +:+    +:+ +:+           +:+    +:+    +:+ +:+ +:+:+ +:+ \n"
+    "  +#+        +#+    +:+ +#++:++#++    +#+    +#+    +:+ +#+  +:+  +#+  \n"
+    " +#+        +#+    +#+        +#+    +#+    +#+    +#+ +#+       +#+   \n"
+    "#+#    #+# #+#    #+# #+#    #+#    #+#    #+#    #+# #+#       #+#    \n"
+    "########   ########   ########     ###     ########  ###       ###     \n";
 
 // Prototypes
 void SaveMaze(Maze::MazeController& mc);
@@ -54,34 +66,47 @@ int playEasy();
 int playMedium();
 int playHard();
 int playCustom();
+int customButton();
 int saveButton();
 int loadButton();
 int loadMaze();
 int closeSubMenu();
 int ExitApp();
 int nothing() { return 0; }
+int updateConfirm();
 
 // Entry
 int main(int /*argc*/, const char** /*argv[]*/) {
   Maze::MazeController mc;
   Menu::MenuController menu(title);
   Menu::MenuController loadMenu(loadTitle);
+  Menu::MenuController customMenu(customTitle);
   instance = &mc;
   menu_ = &menu;
   loadMenu_ = &loadMenu;
+  customMenu_ = &customMenu;
 
   menu.addOption(Menu::MenuController::Option("Easy", &playEasy, true, true));
   menu.addOption(Menu::MenuController::Option("Medium", &playMedium));
   menu.addOption(Menu::MenuController::Option("Hard", &playHard));
   menu.addOption(Menu::MenuController::Option("Custom", &playCustom));
-  menu.addOption(
-      Menu::MenuController::Option("----------", &nothing, false, false));
+  menu.addOption( Menu::MenuController::Option("----------", &nothing, false, false));
   saveOptionIndex = menu.getOptionList().size();
   menu.addOption(Menu::MenuController::Option("Save Maze", &saveButton, false));
   menu.addOption(Menu::MenuController::Option("Load Maze", &loadButton));
-  menu.addOption(
-      Menu::MenuController::Option("----------", &nothing, false, false));
+  menu.addOption( Menu::MenuController::Option("----------", &nothing, false, false));
   menu.addOption(Menu::MenuController::Option("Quit", &ExitApp));
+
+  customMenu.addOption( Menu::MenuController::Option("Rows:", &nothing, false, false));
+  rowOptionIndex = customMenu.getOptionList().size();
+  customMenu.addOption(Menu::MenuController::Option(20, &updateConfirm, true, true));
+  customMenu.addOption(Menu::MenuController::Option("Columns:", &nothing, false, false));
+  colOptionIndex = customMenu.getOptionList().size();
+  customMenu.addOption(Menu::MenuController::Option(20, &updateConfirm));
+  confirmOptionIndex = customMenu.getOptionList().size();
+  customMenu.addOption(Menu::MenuController::Option("Confirm", &customButton));
+  customMenu.addOption(Menu::MenuController::Option("----------", &nothing, false, false));
+  customMenu.addOption(Menu::MenuController::Option("Back", &closeSubMenu));
 
   // Handle execution interrupt.
   struct sigaction sigIntHandler;
@@ -166,16 +191,14 @@ int playHard() {
 }
 // TODO: Make curses menu for choosing size.
 int playCustom() {
-  int rows = 0, cols = 0;
-  string input;
-  cout << "Enter number of rows: ";
-  getline (cin, input);
-  rows = Campbell::Strings::toNumber(input.c_str());
-  cout << "Enter number of columns: ";
-  getline (cin, input);
-  cols = Campbell::Strings::toNumber(input.c_str());
+  customMenu_->startMenu();
+  return 1;
+}
+int customButton() {
+  const int rows = customMenu_->getOptionList()[rowOptionIndex].number;
+  const int cols = customMenu_->getOptionList()[colOptionIndex].number;
+
   instance->play(rows, cols);
-  menu_->getOptionList()[saveOptionIndex].isSelectable = instance->width() > 0;
   return 1;
 }
 // TODO: Get user input for save location.
@@ -219,7 +242,7 @@ int loadButton() {
 int loadMaze() {
   if (instance->load(
           ((string)savesDir +
-           loadMenu_->getOptionList()[loadMenu_->getCurrentIndex()].text)
+           loadMenu_->getOptionList()[loadMenu_->getCurrentIndex()].text())
               .c_str())) {
     instance->play();
     menu_->getOptionList()[saveOptionIndex].isSelectable =
@@ -234,4 +257,11 @@ int ExitApp() {
   endwin();
   exit(0);
   return 0;
+}
+int updateConfirm() {
+  const int rows = customMenu_->getOptionList()[rowOptionIndex].number;
+  const int cols = customMenu_->getOptionList()[colOptionIndex].number;
+  customMenu_->getOptionList()[confirmOptionIndex].isSelectable =
+      rows > 0 && cols > 0;
+  return 1;
 }
