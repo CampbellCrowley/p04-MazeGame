@@ -13,6 +13,8 @@
 using namespace std;
 using namespace Campbell::Color;
 
+typedef Menu::MenuController::Option Option;
+
 // Global vars
 Maze::MazeController* instance_;
 Menu::MenuController* loadMenu_;
@@ -20,6 +22,7 @@ Menu::MenuController* saveMenu_;
 Menu::MenuController* customMenu_;
 Menu::MenuController* menu_;
 int saveOptionIndex = 0;
+int saveSettingsOptionIndex = 0;
 int rowOptionIndex = 0;
 int colOptionIndex = 0;
 int confirmOptionIndex = 0;
@@ -107,36 +110,43 @@ int main(int /*argc*/, const char** /*argv[]*/) {
 
   // Add options to constant/unchanging menus.
   // Main Menu
-  menu.addOption(Menu::MenuController::Option("Easy", &playEasy, true, true));
-  menu.addOption(Menu::MenuController::Option("Medium", &playMedium));
-  menu.addOption(Menu::MenuController::Option("Hard", &playHard));
-  menu.addOption(Menu::MenuController::Option("Custom", &playCustom));
-  menu.addOption( Menu::MenuController::Option("----------", &nothing, false, false));
+  menu.addOption(Option("Easy", &playEasy, true, true));
+  menu.addOption(Option("Medium", &playMedium));
+  menu.addOption(Option("Hard", &playHard));
+  menu.addOption(Option("Custom", &playCustom));
+  menu.addOption(Option("----------", &nothing, false, false));
   saveOptionIndex = menu.getOptionList().size();
-  menu.addOption(Menu::MenuController::Option("Save Maze", &saveButton, false));
-  menu.addOption(Menu::MenuController::Option("Load Maze", &loadButton));
-  menu.addOption( Menu::MenuController::Option("----------", &nothing, false, false));
-  menu.addOption(Menu::MenuController::Option("Quit", &ExitApp));
+  menu.addOption(Option("Save Maze", &saveButton, false));
+  menu.addOption(Option("Load Maze", &loadButton));
+  menu.addOption(Option("----------", &nothing, false, false));
+  menu.addOption(Option("Quit", &ExitApp));
 
   // Custom Maze Menu
-  customMenu.addOption( Menu::MenuController::Option("Rows:", &nothing, false, false));
+  customMenu.addOption(Option("Rows:", &nothing, false, false));
   rowOptionIndex = customMenu.getOptionList().size();
-  customMenu.addOption(Menu::MenuController::Option(20, &updateConfirm, true, true));
-  customMenu.addOption(Menu::MenuController::Option("Columns:", &nothing, false, false));
+  customMenu.addOption(Option(20, &updateConfirm, true, true));
+  customMenu.addOption(Option("Columns:", &nothing, false, false));
   colOptionIndex = customMenu.getOptionList().size();
-  customMenu.addOption(Menu::MenuController::Option(20, &updateConfirm));
+  customMenu.addOption(Option(20, &updateConfirm));
   confirmOptionIndex = customMenu.getOptionList().size();
-  customMenu.addOption(Menu::MenuController::Option("Confirm", &customButton));
-  customMenu.addOption(Menu::MenuController::Option("----------", &nothing, false, false));
-  customMenu.addOption(Menu::MenuController::Option("Back", &closeSubMenu));
+  customMenu.addOption(Option("Confirm", &customButton));
+  customMenu.addOption(Option("----------", &nothing, false, false));
+  customMenu.addOption(Option("Back", &closeSubMenu));
 
   // Save Maze Menu
-  saveMenu.addOption(Menu::MenuController::Option("Filename:", &nothing, false, false));
+  vector<string> saveOptions;
+  saveOptions.push_back("All session data");
+  saveOptions.push_back("Hints (Replace with history)");
+  saveOptions.push_back("Hints (Replace with empty)");
+  saveOptions.push_back("Nothing");
+  saveMenu.addOption(Option("Filename:", &nothing, false, false));
   filenameOptionIndex = saveMenu.getOptionList().size();
-  saveMenu.addOption(Menu::MenuController::Option(true, true));
-  saveMenu.addOption(Menu::MenuController::Option("Confirm", &filenameButton));
-  saveMenu.addOption(Menu::MenuController::Option("----------", &nothing, false, false));
-  saveMenu.addOption(Menu::MenuController::Option("Back", &closeSubMenu));
+  saveMenu.addOption(Option(true, true))->modifyableText = "MyMaze.dat";
+  saveSettingsOptionIndex = saveMenu.getOptionList().size();
+  saveMenu.addOption(Option("Remove", saveOptions));
+  saveMenu.addOption(Option("Confirm", &filenameButton));
+  saveMenu.addOption(Option("----------", &nothing, false, false));
+  saveMenu.addOption(Option("Back", &closeSubMenu));
 
   // Handle execution interrupt.
   struct sigaction sigIntHandler;
@@ -224,6 +234,34 @@ int saveButton() {
 }
 // Called when Confirm is chosen in the save menu and writes the maze to file.
 int filenameButton() {
+  unsigned int option =
+      saveMenu_->getOptionList()[saveSettingsOptionIndex].currentValue;
+  if (option == 0) instance_->resetPosition();
+  if (option !=
+      saveMenu_->getOptionList()[saveSettingsOptionIndex].values.size()) {
+    for (int i = 0; i < (int)instance_->height(); ++i) {
+      for (int j = 0; j < (int)instance_->width(); ++j) {
+        Maze::TileData *data = &(instance_->getMaze()[i][j]);
+        switch(option) {
+          case 0: // Clear all data.
+            if (*data == Maze::CURRENT || *data == Maze::PREVIOUS ||
+                *data == Maze::HINT) {
+              *data = Maze::EMPTY;
+            }
+            break;
+          case 1: // Change HINTs to PREVIOUS.
+          case 2: // Change HINTs to EMPTY.
+            if (*data == Maze::HINT) {
+              *data = option == 2 ? Maze::EMPTY : Maze::PREVIOUS;
+            }
+            break;
+          default:
+            break;
+        }
+      }
+    }
+    instance_->getMaze();
+  }
   if (instance_->save(
           (savesDir +
            saveMenu_->getOptionList()[filenameOptionIndex].modifyableText)
@@ -259,11 +297,10 @@ int loadButton() {
 
   loadMenu_->clearOptions();
   for (int i = 0; i < (int)saveFiles.size(); ++i) {
-    loadMenu_->addOption(Menu::MenuController::Option(saveFiles[i].c_str(),
+    loadMenu_->addOption(Option(saveFiles[i].c_str(),
                                                     &loadMaze, true, i == 0));
   }
-  loadMenu_->addOption(
-      Menu::MenuController::Option("-Close Menu-", &closeSubMenu));
+  loadMenu_->addOption(Option("-Close Menu-", &closeSubMenu));
   loadMenu_->startMenu();
 
   return 1;

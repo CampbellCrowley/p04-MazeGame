@@ -48,23 +48,23 @@ void MenuController::printMenu() const {
     }
   }
   setColor(INSTRUCTIONS);
-  ::move(startPos, 20);
+  ::move(startPos, 40);
   addstr("Controls:");
-  ::move(startPos+1, 20);
+  ::move(startPos+1, 40);
   addstr("UP:      K or \u2191 (Up arrow)");
-  ::move(startPos+2, 20);
+  ::move(startPos+2, 40);
   addstr("DOWN:    J or \u2193 (Down arrow)");
-  ::move(startPos+3, 20);
+  ::move(startPos+3, 40);
   addstr("LEFT:    H or \u2191 (Left arrow)");
-  ::move(startPos+4, 20);
+  ::move(startPos+4, 40);
   addstr("RIGHT:   L or \u2192 (Right arrow)");
-  ::move(startPos+5, 20);
+  ::move(startPos+5, 40);
   addstr("SELECT:  Enter or HINT or GIVE UP");
-  ::move(startPos+6, 20);
+  ::move(startPos+6, 40);
   addstr("HINT:    \"");
-  ::move(startPos+7, 20);
+  ::move(startPos+7, 40);
   addstr("GIVE UP: ?");
-  ::move(startPos+8, 20);
+  ::move(startPos+8, 40);
   addstr("QUIT:    Q");
   unsetColor(INSTRUCTIONS);
   ::move(cursorPos, 0);
@@ -148,6 +148,8 @@ bool MenuController::move(Input direction) {
         printMenu();
         optionList[currentIndex].modifyableText = getString();
         return true;
+      } else if (optionList[currentIndex].isList) {
+        return false;
       } else {
         closeMenu();
         if (optionList[currentIndex].selectAction() != 100) openMenu();
@@ -159,6 +161,16 @@ bool MenuController::move(Input direction) {
         optionList[currentIndex].number += direction == LEFT ? -1 : 1;
         if (optionList[currentIndex].selectAction() == 100) closeMenu();
         return true;
+      } else if (optionList[currentIndex].isList) {
+        if ((optionList[currentIndex].currentValue >=
+                 optionList[currentIndex].values.size() - 1 &&
+             direction == RIGHT) ||
+            (optionList[currentIndex].currentValue == 0 && direction == LEFT)) {
+          return false;
+        } else {
+          optionList[currentIndex].currentValue += direction == LEFT ? -1 : 1;
+          return true;
+        }
       } else {
         return false;
       }
@@ -205,6 +217,12 @@ std::string MenuController::getString() const {
 
   return input;
 }
-void MenuController::setColor(Colors index) const { attron(COLOR_PAIR(index)); }
-void MenuController::unsetColor(Colors index) const { attroff(COLOR_PAIR(index)); }
+void MenuController::setColor(Colors index) const {
+  if (!has_colors()) return;
+  attron(COLOR_PAIR(index));
+}
+void MenuController::unsetColor(Colors index) const {
+  if (!has_colors()) return;
+  attroff(COLOR_PAIR(index));
+}
 }  // namespace Menu

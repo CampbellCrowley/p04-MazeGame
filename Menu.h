@@ -24,35 +24,60 @@ class MenuController {
   ~MenuController() { endWin(); }
 
   // An option to show in the menu list.
-  // Shows selectable option with title.
+  // Shows selectable option with title and callback.
   struct Option {
-    Option(const char* text_, int (*selectAction)(), bool isSelectable = true,
+    Option(const char *text_, int (*selectAction)(), bool isSelectable = true,
            bool isHighlighted = false)
-        : text_(text_),
-          selectAction(selectAction),
-          isSelectable(isSelectable),
+        : text_(text_), selectAction(selectAction), isSelectable(isSelectable),
           isHighlighted(isHighlighted) {
       isNumber = false;
       isTextInput = false;
+      isList = false;
     }
-    // Shows number that is changeable.
+    // Shows number that is changeable with callback that is called if value
+    // changes.
     Option(int number, int (*selectAction)(), bool isSelectable = true,
            bool isHighlighted = false)
         : number(number),
           selectAction(selectAction),
           isSelectable(isSelectable),
           isHighlighted(isHighlighted) {
-      isNumber = true;
       isTextInput = false;
+      isList = false;
+      isNumber = true;
     }
-    // Shows text input for entering a string.
+    // Shows text input for entering a string. No callback, since everything is
+    // managed internally.
     Option(bool isSelectable = true, bool isHighlighted = false)
         : isSelectable(isSelectable), isHighlighted(isHighlighted) {
       isNumber = false;
+      isList = false;
       isTextInput = true;
     }
+    // Shows a title for this option as well as true or false which can be
+    // toggled.
+    Option(const char *text_, bool toggled = false, bool isSelectable = true,
+           bool isHighlighted = false)
+        : text_(text_), currentValue(toggled), isSelectable(isSelectable),
+          isHighlighted(isHighlighted) {
+      values.push_back("false");
+      values.push_back("TRUE");
+      isNumber = false;
+      isTextInput = false;
+      isList = true;
+    }
+    // Allows a choice between a list of options.
+    Option(const char *text_, const std::vector<std::string> &values,
+           bool isSelectable = true, bool isHighlighted = false)
+        : text_(text_), values(values), isSelectable(isSelectable),
+          isHighlighted(isHighlighted) {
+      isNumber = false;
+      isTextInput = false;
+      isList = true;
+      currentValue = 0;
+    }
 
-    // Retruns formatted c-style string for showing the user.
+    // Returns formatted c-style string for showing the user.
     const char* text() const {
       if (isNumber) {
         std::ostringstream ss;
@@ -62,6 +87,14 @@ class MenuController {
         std::ostringstream ss;
         ss << "[" << modifyableText << "]";
         return ss.str().c_str();
+      } else if (isList) {
+        if (currentValue < values.size()) {
+          std::ostringstream ss;
+          ss << text_ << ": <" << values[currentValue] << ">";
+          return ss.str().c_str();
+        } else {
+          return "Oops, this is broken.";
+        }
       } else {
         return text_;
       }
@@ -73,6 +106,9 @@ class MenuController {
     int number;
     // Current text input if this is a text input option.
     std::string modifyableText;
+    // List of values to choose between in list option.
+    std::vector<std::string> values;
+    unsigned int currentValue;
 
     // The function to call when the button is selected. Not used in text input.
     int (*selectAction)();
@@ -84,6 +120,8 @@ class MenuController {
     bool isNumber;
     // If the option is a text input option.
     bool isTextInput;
+    // If the option is a list of values to choose between.
+    bool isList;
   };
 
   // Opens menu and takes over control flow.

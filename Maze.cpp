@@ -25,14 +25,14 @@ void MazeController::startWin() {
   // Colors
   start_color();
   init_pair(10, COLOR_GREEN, COLOR_BLACK);
-  init_pair(MazeController::TileSymbolsColor::EMPTY, COLOR_BLACK, COLOR_BLACK);
-  init_pair(MazeController::TileSymbolsColor::WALL, COLOR_RED, COLOR_RED);
-  init_pair(MazeController::TileSymbolsColor::START, COLOR_GREEN, COLOR_GREEN);
-  init_pair(MazeController::TileSymbolsColor::END, COLOR_YELLOW, COLOR_YELLOW);
-  init_pair(MazeController::TileSymbolsColor::CURRENT, COLOR_GREEN, COLOR_GREEN);
-  init_pair(MazeController::TileSymbolsColor::PREVIOUS, COLOR_BLUE, COLOR_BLUE);
-  init_pair(MazeController::TileSymbolsColor::UNKNOWN, COLOR_RED, COLOR_BLACK);
-  init_pair(MazeController::TileSymbolsColor::HINT, COLOR_WHITE, COLOR_WHITE);
+  init_pair(EMPTY_COLOR, COLOR_BLACK, COLOR_BLACK);
+  init_pair(WALL_COLOR, COLOR_RED, COLOR_RED);
+  init_pair(START_COLOR, COLOR_GREEN, COLOR_GREEN);
+  init_pair(END_COLOR, COLOR_YELLOW, COLOR_YELLOW);
+  init_pair(CURRENT_COLOR, COLOR_GREEN, COLOR_GREEN);
+  init_pair(PREVIOUS_COLOR, COLOR_BLUE, COLOR_BLUE);
+  init_pair(UNKNOWN_COLOR, COLOR_RED, COLOR_BLACK);
+  init_pair(HINT_COLOR, COLOR_WHITE, COLOR_WHITE);
   isWinOpen_ = true;
 }
 void MazeController::endWin() {
@@ -208,6 +208,18 @@ bool MazeController::isComplete() const {
   return maze[current_y][current_x] == END;
 }
 
+void MazeController::resetPosition() {
+  for (unsigned int i = 0; i < height(); ++i) {
+    for (unsigned int j = 0; j < width(); ++j) {
+      if (maze[i][j] == START) {
+        current_x = j;
+        current_y = i;
+        return;
+      }
+    }
+  }
+}
+
 bool MazeController::move(Direction dir, bool godMode) {
   switch(dir) {
     case DOWN:
@@ -325,29 +337,29 @@ void MazeController::setColor(const TileData &input) {
   if (!has_colors()) return;
   switch (input) {
     case EMPTY:
-      wattron(stdscr, COLOR_PAIR(TileSymbolsColor::EMPTY));
+      wattron(stdscr, COLOR_PAIR(EMPTY_COLOR));
       break;
     case WALL:
-      wattron(stdscr, COLOR_PAIR(TileSymbolsColor::WALL));
+      wattron(stdscr, COLOR_PAIR(WALL_COLOR));
       break;
     case START:
-      wattron(stdscr, COLOR_PAIR(TileSymbolsColor::START));
+      wattron(stdscr, COLOR_PAIR(START_COLOR));
       break;
     case END:
-      wattron(stdscr, COLOR_PAIR(TileSymbolsColor::END));
+      wattron(stdscr, COLOR_PAIR(END_COLOR));
       break;
     case CURRENT:
-      wattron(stdscr, COLOR_PAIR(TileSymbolsColor::CURRENT));
+      wattron(stdscr, COLOR_PAIR(CURRENT_COLOR));
       wattron(stdscr, A_BLINK);
       break;
     case PREVIOUS:
-      wattron(stdscr, COLOR_PAIR(TileSymbolsColor::PREVIOUS));
+      wattron(stdscr, COLOR_PAIR(PREVIOUS_COLOR));
       break;
     case HINT:
-      wattron(stdscr, COLOR_PAIR(TileSymbolsColor::HINT));
+      wattron(stdscr, COLOR_PAIR(HINT_COLOR));
       break;
     default:
-      wattron(stdscr, COLOR_PAIR(TileSymbolsColor::UNKNOWN));
+      wattron(stdscr, COLOR_PAIR(UNKNOWN_COLOR));
       break;
   }
 }
@@ -355,29 +367,29 @@ void MazeController::unsetColor(const TileData &input) {
   if (!has_colors()) return;
   switch (input) {
     case EMPTY:
-      wattroff(stdscr, COLOR_PAIR(TileSymbolsColor::EMPTY));
+      wattroff(stdscr, COLOR_PAIR(EMPTY_COLOR));
       break;
     case WALL:
-      wattroff(stdscr, COLOR_PAIR(TileSymbolsColor::WALL));
+      wattroff(stdscr, COLOR_PAIR(WALL_COLOR));
       break;
     case START:
-      wattroff(stdscr, COLOR_PAIR(TileSymbolsColor::START));
+      wattroff(stdscr, COLOR_PAIR(START_COLOR));
       break;
     case END:
-      wattroff(stdscr, COLOR_PAIR(TileSymbolsColor::END));
+      wattroff(stdscr, COLOR_PAIR(END_COLOR));
       break;
     case CURRENT:
-      wattroff(stdscr, COLOR_PAIR(TileSymbolsColor::CURRENT));
+      wattroff(stdscr, COLOR_PAIR(CURRENT_COLOR));
       wattroff(stdscr, A_BLINK);
       break;
     case PREVIOUS:
-      wattroff(stdscr, COLOR_PAIR(TileSymbolsColor::PREVIOUS));
+      wattroff(stdscr, COLOR_PAIR(PREVIOUS_COLOR));
       break;
     case HINT:
-      wattroff(stdscr, COLOR_PAIR(TileSymbolsColor::HINT));
+      wattroff(stdscr, COLOR_PAIR(HINT_COLOR));
       break;
     default:
-      wattroff(stdscr, COLOR_PAIR(TileSymbolsColor::UNKNOWN));
+      wattroff(stdscr, COLOR_PAIR(UNKNOWN_COLOR));
       break;
   }
 }

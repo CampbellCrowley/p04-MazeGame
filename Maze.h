@@ -16,6 +16,16 @@ enum TileData {
   FRONTIER = 'T',
   HINT = 'H'
 };
+enum TileColor {
+  EMPTY_COLOR = 1,
+  WALL_COLOR,
+  START_COLOR,
+  END_COLOR,
+  CURRENT_COLOR,
+  PREVIOUS_COLOR,
+  UNKNOWN_COLOR,
+  HINT_COLOR
+};
 // Available movement directions and general controls.
 enum Direction { UP, DOWN, LEFT, RIGHT, NONE, EXIT, HELP, SOLVE };
 // Make typing a little easier.
@@ -95,6 +105,8 @@ class MazeController {
     isSolutionValid = false;
     solution.clear();
   }
+  // Reset current position to starting position.
+  void resetPosition();
 
   // Maze dimensions
   unsigned int height() const { return height(maze); }
@@ -119,18 +131,6 @@ class MazeController {
     static const char PREVIOUS;
     static const char UNKNOWN;
     static const char HINT;
-  };
-  struct TileSymbolsColor {
-    enum Color {
-      EMPTY = 1,
-      WALL,
-      START,
-      END,
-      CURRENT,
-      PREVIOUS,
-      UNKNOWN,
-      HINT
-    };
   };
 
 protected:
