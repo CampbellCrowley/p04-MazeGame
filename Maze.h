@@ -16,8 +16,11 @@ enum TileData {
   FRONTIER = 'T',
   HINT = 'H'
 };
+// Available movement directions and general controls.
 enum Direction { UP, DOWN, LEFT, RIGHT, NONE, EXIT, HELP, SOLVE };
+// Make typing a little easier.
 typedef std::vector<std::vector<TileData> > Maze;
+// File path to saves directory.
 const char *lastSessionFilename = "saves/lastsession.dat";
 const char *completeTitle =  // Maze Complete!
     "                                    :::   :::       :::     ::::::::: "
@@ -53,7 +56,6 @@ class MazeController {
 
   // Possibly save, then exit the game.
   void Exit(bool shouldSave = false);
-  bool isWinOpen() const { return isWinOpen_; }
   // Takes over control flow and only returns once the user has requested exit.
   void play(int generateRows = -1, int generateCols = -1);
 
@@ -82,9 +84,13 @@ class MazeController {
   void print(int cols, int rows, const Maze &maze);
   // If the player is in the maze exit.
   bool isComplete() const;
+  // If the NCurses window is open.
+  bool isWinOpen() const { return isWinOpen_; }
   // Move the player in a direction. Returns if the player actually moved.
   bool move(Direction dir, bool godMode = false);
 
+  // Invalidate the solution so we don't use the current solution if the maze
+  // changes.
   void invalidateSolution() {
     isSolutionValid = false;
     solution.clear();
@@ -104,8 +110,7 @@ class MazeController {
 
   // Symbols that are shown on the screen. Different from TileData to allow for
   // color or different symbols than those used in the files.
-  class TileSymbols {
-   public:
+  struct TileSymbols {
     static const char EMPTY;
     static const char WALL;
     static const char START;
@@ -115,19 +120,20 @@ class MazeController {
     static const char UNKNOWN;
     static const char HINT;
   };
-  class TileSymbolsColor {
-   public:
-    static const unsigned char EMPTY;
-    static const unsigned char WALL;
-    static const unsigned char START;
-    static const unsigned char END;
-    static const unsigned char CURRENT;
-    static const unsigned char PREVIOUS;
-    static const unsigned char UNKNOWN;
-    static const unsigned char HINT;
+  struct TileSymbolsColor {
+    enum Color {
+      EMPTY = 1,
+      WALL,
+      START,
+      END,
+      CURRENT,
+      PREVIOUS,
+      UNKNOWN,
+      HINT
+    };
   };
 
- protected:
+protected:
   // Starts curses window.
   void startWin();
   // Ends curses window.
@@ -142,42 +148,13 @@ class MazeController {
   static TileData charToTile(const char &input);
   // Converts a TileData to symbol to display.
   static char tileToSymbol(const TileData &input);
+
   // Converts a TileData to color and sets color to screen.
   static void setColor(const TileData &input);
   static void unsetColor(const TileData &input);
+
   // Gets user input and converts that to a direction.
-  Direction getMoveDirection() const {
-    wchar_t input = getch();
-    switch (input) {
-      case KEY_DOWN:
-      case 'J':
-      case 'j':
-        return DOWN;
-      case KEY_UP:
-      case 'K':
-      case 'k':
-        return UP;
-      case KEY_LEFT:
-      case 'H':
-      case 'h':
-        return LEFT;
-      case KEY_RIGHT:
-      case 'L':
-      case 'l':
-        return RIGHT;
-      case 'Q':
-      case 'q':
-        return EXIT;
-      case '\'':
-      case '\"':
-        return HELP;
-      case '?':
-      case '/':
-        return SOLVE;
-      default:
-        return NONE;
-    }
-  }
+  Direction getMoveDirection() const;
 
  private:
   // Picks a random empty tile around a coordinate (x,y).
@@ -201,6 +178,7 @@ class MazeController {
   // The previously inputted screen dimensions.
   unsigned int lastCols;
   unsigned int lastRows;
+  // If the NCurses window is open.
   bool isWinOpen_;
 
 };  // class MazeController

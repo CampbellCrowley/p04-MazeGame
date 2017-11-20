@@ -86,6 +86,7 @@ void MenuController::startWin() {
   init_pair(BACKGROUND, COLOR_BLACK, COLOR_BLACK);
   init_pair(DISABLED, COLOR_RED, COLOR_BLACK);
 
+  // TODO: Doesn't seem to work?
   bkgd(COLOR_PAIR(BACKGROUND));
 
   isWinOpen_ = true;
@@ -116,7 +117,7 @@ Input MenuController::getInput() const {
     case 'Q':
     case 'q':
       return QUIT;
-    case 10:
+    case 10: // Enter
     case KEY_ENTER:
     case '\'':
     case '\"':
@@ -143,6 +144,8 @@ bool MenuController::move(Input direction) {
     }
     case SELECT:
       if (optionList[currentIndex].isTextInput) {
+        optionList[currentIndex].modifyableText.clear();
+        printMenu();
         optionList[currentIndex].modifyableText = getString();
         return true;
       } else {
@@ -155,8 +158,10 @@ bool MenuController::move(Input direction) {
       if (optionList[currentIndex].isNumber) {
         optionList[currentIndex].number += direction == LEFT ? -1 : 1;
         if (optionList[currentIndex].selectAction() == 100) closeMenu();
+        return true;
+      } else {
+        return false;
       }
-      return true;
     case NONE:
     default:
       return false;
@@ -172,15 +177,12 @@ int MenuController::getNextIndex(Input direction) const {
   }
   return currentIndex;
 }
-std::string MenuController::getString() {
+std::string MenuController::getString() const {
   std::string input;
-  int ch;
+  char ch;
 
   nocbreak();
   echo();
-
-  optionList[currentIndex].modifyableText.clear();
-  printMenu();
 
   int y, x;
   getyx(stdscr, y, x);

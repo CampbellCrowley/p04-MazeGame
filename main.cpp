@@ -14,7 +14,7 @@ using namespace std;
 using namespace Campbell::Color;
 
 // Global vars
-Maze::MazeController* instance;
+Maze::MazeController* instance_;
 Menu::MenuController* loadMenu_;
 Menu::MenuController* saveMenu_;
 Menu::MenuController* customMenu_;
@@ -92,17 +92,21 @@ int nothing() { return 0; }
 
 // Entry
 int main(int /*argc*/, const char** /*argv[]*/) {
+  // Instantiate menus and maze controller.
   Maze::MazeController mc;
   Menu::MenuController menu(title);
   Menu::MenuController loadMenu(loadTitle);
   Menu::MenuController saveMenu(saveTitle);
   Menu::MenuController customMenu(customTitle);
-  instance = &mc;
+  // Save references for later use.
+  instance_ = &mc;
   menu_ = &menu;
   loadMenu_ = &loadMenu;
   saveMenu_ = &saveMenu;
   customMenu_ = &customMenu;
 
+  // Add options to constant/unchanging menus.
+  // Main Menu
   menu.addOption(Menu::MenuController::Option("Easy", &playEasy, true, true));
   menu.addOption(Menu::MenuController::Option("Medium", &playMedium));
   menu.addOption(Menu::MenuController::Option("Hard", &playHard));
@@ -114,6 +118,7 @@ int main(int /*argc*/, const char** /*argv[]*/) {
   menu.addOption( Menu::MenuController::Option("----------", &nothing, false, false));
   menu.addOption(Menu::MenuController::Option("Quit", &ExitApp));
 
+  // Custom Maze Menu
   customMenu.addOption( Menu::MenuController::Option("Rows:", &nothing, false, false));
   rowOptionIndex = customMenu.getOptionList().size();
   customMenu.addOption(Menu::MenuController::Option(20, &updateConfirm, true, true));
@@ -125,6 +130,7 @@ int main(int /*argc*/, const char** /*argv[]*/) {
   customMenu.addOption(Menu::MenuController::Option("----------", &nothing, false, false));
   customMenu.addOption(Menu::MenuController::Option("Back", &closeSubMenu));
 
+  // Save Maze Menu
   saveMenu.addOption(Menu::MenuController::Option("Filename:", &nothing, false, false));
   filenameOptionIndex = saveMenu.getOptionList().size();
   saveMenu.addOption(Menu::MenuController::Option(true, true));
@@ -139,6 +145,7 @@ int main(int /*argc*/, const char** /*argv[]*/) {
   sigIntHandler.sa_flags = 0;
   sigaction(SIGINT, &sigIntHandler, NULL);
 
+  // CHeck for previous session data.
   {
     struct stat buf;
     if (stat(Maze::lastSessionFilename, &buf) != -1) {
@@ -153,13 +160,15 @@ int main(int /*argc*/, const char** /*argv[]*/) {
         } else {
           mc.play();
           menu.getOptionList()[saveOptionIndex].isSelectable =
-              instance->width() > 0;
+              instance_->width() > 0;
         }
       }
     }
   }
 
+  // Catch any exceptions to ensure NCurses shuts down properly.
   try {
+    // Start main menu.
     menu.startMenu();
   } catch (...) {
     endwin();
@@ -175,38 +184,47 @@ void interruptHandler(int s) {
   (void)s;
   ExitApp();
 }
+// Chooses easy difficulty maze and begins level.
 int playEasy() {
-  instance->play(11, 11);
-  menu_->getOptionList()[saveOptionIndex].isSelectable = instance->width() > 0;
+  instance_->play(11, 11);
+  menu_->getOptionList()[saveOptionIndex].isSelectable = instance_->width() > 0;
   return 1;
 }
+// Chooses medium difficulty maze and begins level.
 int playMedium() {
-  instance->play(51, 51);
-  menu_->getOptionList()[saveOptionIndex].isSelectable = instance->width() > 0;
+  instance_->play(51, 51);
+  menu_->getOptionList()[saveOptionIndex].isSelectable = instance_->width() > 0;
   return 1;
 }
+// Chooses hard difficulty maze and begins level.
 int playHard() {
-  instance->play(101, 101);
-  menu_->getOptionList()[saveOptionIndex].isSelectable = instance->width() > 0;
+  instance_->play(101, 101);
+  menu_->getOptionList()[saveOptionIndex].isSelectable = instance_->width() > 0;
   return 1;
 }
+// Chooses custom diffuclty and opens menu to pick settings.
 int playCustom() {
   customMenu_->startMenu();
   return 1;
 }
+// Called when Confirm is chosen in custom menu, and begins the level with the
+// user inputted settings.
 int customButton() {
   const int rows = customMenu_->getOptionList()[rowOptionIndex].number;
   const int cols = customMenu_->getOptionList()[colOptionIndex].number;
 
-  instance->play(rows, cols);
+  instance_->play(rows, cols);
   return 1;
 }
+// Save option was chosen, starts save menu to allow user to name the file they
+// are about to save.
 int saveButton() {
   saveMenu_->startMenu();
   return 1;
 }
+// Called when Confirm is chosen in the save menu and writes the maze to file.
 int filenameButton() {
-  if (instance->save(
+  if (instance_->save(
           (savesDir +
            saveMenu_->getOptionList()[filenameOptionIndex].modifyableText)
               .c_str())) {
@@ -215,6 +233,8 @@ int filenameButton() {
     return 0;
   }
 }
+// Load option was chosen from main menu, stat the saves dir, and show user all
+// available files to load.
 int loadButton() {
   DIR* dir;
   struct dirent* ent;
@@ -248,25 +268,30 @@ int loadButton() {
 
   return 1;
 }
+// File was chosen from load menu, load the chosen file and start the level.
 int loadMaze() {
-  if (instance->load(
+  if (instance_->load(
           ((string)savesDir +
            loadMenu_->getOptionList()[loadMenu_->getCurrentIndex()].text())
               .c_str())) {
-    instance->play();
+    instance_->play();
     menu_->getOptionList()[saveOptionIndex].isSelectable =
-        instance->width() > 0;
+        instance_->width() > 0;
     return closeSubMenu();
   } else {
     return 0;
   }
 }
+// Close whichever menu is open and return to previous menu.
 int closeSubMenu() { return 100; }
+// Terminate the entire program now.
 int ExitApp() {
   endwin();
   exit(0);
   return 0;
 }
+// Update the custom menu confirm button to only be selectable while values are
+// positive.
 int updateConfirm() {
   const int rows = customMenu_->getOptionList()[rowOptionIndex].number;
   const int cols = customMenu_->getOptionList()[colOptionIndex].number;

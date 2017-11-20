@@ -24,6 +24,7 @@ class MenuController {
   ~MenuController() { endWin(); }
 
   // An option to show in the menu list.
+  // Shows selectable option with title.
   struct Option {
     Option(const char* text_, int (*selectAction)(), bool isSelectable = true,
            bool isHighlighted = false)
@@ -34,6 +35,7 @@ class MenuController {
       isNumber = false;
       isTextInput = false;
     }
+    // Shows number that is changeable.
     Option(int number, int (*selectAction)(), bool isSelectable = true,
            bool isHighlighted = false)
         : number(number),
@@ -43,12 +45,14 @@ class MenuController {
       isNumber = true;
       isTextInput = false;
     }
+    // Shows text input for entering a string.
     Option(bool isSelectable = true, bool isHighlighted = false)
         : isSelectable(isSelectable), isHighlighted(isHighlighted) {
       isNumber = false;
       isTextInput = true;
     }
 
+    // Retruns formatted c-style string for showing the user.
     const char* text() const {
       if (isNumber) {
         std::ostringstream ss;
@@ -65,16 +69,20 @@ class MenuController {
 
     // The text of the option to show in the menu.
     const char* text_;
+    // Current value if this option is choosing a number.
     int number;
+    // Current text input if this is a text input option.
     std::string modifyableText;
-    // The function to call when the button is selected.
+
+    // The function to call when the button is selected. Not used in text input.
     int (*selectAction)();
-    // Whether or not the button can be selected.
+    // Whether or not the option can be selected.
     bool isSelectable;
-    // If the button is highlighted.
+    // If the option is highlighted.
     bool isHighlighted;
     // If the option is a number that can be increased or decreased.
     bool isNumber;
+    // If the option is a text input option.
     bool isTextInput;
   };
 
@@ -91,7 +99,7 @@ class MenuController {
   // Ends curses session
   void endWin();
   // Move the current selection in the requested direction. Returns if actually
-  // moved.
+  // moved or if screen needs to be reprinted.
   bool move(Input direction);
 
   // Adds an option to the menu list.
@@ -114,7 +122,7 @@ class MenuController {
   // Get the next Option that isSelectable in the given direction.
   int getNextIndex(Input direction) const;
 
-  // Set index based off Colors
+  // Set current color in ncurses.
   void setColor(Colors index) const;
   void unsetColor(Colors index) const;
 
@@ -128,7 +136,7 @@ class MenuController {
   // Title to show at the top before the options.
   const char* title;
   // Get text input via curses screen.
-  std::string getString();
+  std::string getString() const;
 };
 }  // namespace Menu
 

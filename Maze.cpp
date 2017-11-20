@@ -15,14 +15,6 @@ const char MazeController::TileSymbols::CURRENT = '^';
 const char MazeController::TileSymbols::PREVIOUS = '.';
 const char MazeController::TileSymbols::UNKNOWN = 'E';
 const char MazeController::TileSymbols::HINT = 'H';
-const unsigned char MazeController::TileSymbolsColor::EMPTY = 1;
-const unsigned char MazeController::TileSymbolsColor::WALL = 2;
-const unsigned char MazeController::TileSymbolsColor::START = 3;
-const unsigned char MazeController::TileSymbolsColor::END = 4;
-const unsigned char MazeController::TileSymbolsColor::CURRENT = 5;
-const unsigned char MazeController::TileSymbolsColor::PREVIOUS = 6;
-const unsigned char MazeController::TileSymbolsColor::UNKNOWN = 7;
-const unsigned char MazeController::TileSymbolsColor::HINT = 8;
 
 void MazeController::startWin() {
   // Handle NCurses.
@@ -591,4 +583,37 @@ void MazeController::solve(const Maze &maze, Maze &solution) {
   } while (didSomething);
   isSolutionValid = true;
 }
+
+Direction MazeController::getMoveDirection() const {
+    wchar_t input = getch();
+    switch (input) {
+      case KEY_DOWN:
+      case 'J':
+      case 'j':
+        return DOWN;
+      case KEY_UP:
+      case 'K':
+      case 'k':
+        return UP;
+      case KEY_LEFT:
+      case 'H':
+      case 'h':
+        return LEFT;
+      case KEY_RIGHT:
+      case 'L':
+      case 'l':
+        return RIGHT;
+      case 'Q':
+      case 'q':
+        return EXIT;
+      case '\'':
+      case '\"':
+        return HELP;
+      case '?':
+      case '/':
+        return SOLVE;
+      default:
+        return NONE;
+    }
+  }
 }  // namespace Maze
