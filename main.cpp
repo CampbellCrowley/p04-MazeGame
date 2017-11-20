@@ -16,12 +16,14 @@ using namespace Campbell::Color;
 // Global vars
 Maze::MazeController* instance;
 Menu::MenuController* loadMenu_;
+Menu::MenuController* saveMenu_;
 Menu::MenuController* customMenu_;
 Menu::MenuController* menu_;
 int saveOptionIndex = 0;
 int rowOptionIndex = 0;
 int colOptionIndex = 0;
 int confirmOptionIndex = 0;
+int filenameOptionIndex = 0;
 const char* savesDir = "./saves/";
 const char* title = // Maze Master
 "        :::   :::       :::     ::::::::: ::::::::::                       \n"
@@ -38,6 +40,19 @@ const char* title = // Maze Master
 "  +#+       +#+ +#+     +#+        +#+    +#+     +#+        +#+    +#+    \n"
 " #+#       #+# #+#     #+# #+#    #+#    #+#     #+#        #+#    #+#     \n"
 "###       ### ###     ###  ########     ###     ########## ###    ###      \n";
+const char *saveTitle = // Save Maze
+    "      ::::::::      :::     :::     ::: ::::::::::            :::   :::   "
+    "    :::     ::::::::: ::::::::::\n    :+:    :+:   :+: :+:   :+:     :+: "
+    ":+:                  :+:+: :+:+:    :+: :+:        :+:  :+:        \n   "
+    "+:+         +:+   +:+  +:+     +:+ +:+                 +:+ +:+:+ +:+  +:+ "
+    "  +:+      +:+   +:+         \n  +#++:++#++ +#++:++#++: +#+     +:+ "
+    "+#++:++#            +#+  +:+  +#+ +#++:++#++:    +#+    +#++:++#     \n   "
+    "     +#+ +#+     +#+  +#+   +#+  +#+                 +#+       +#+ +#+    "
+    " +#+   +#+     +#+           \n#+#    #+# #+#     #+#   #+#+#+#   #+#     "
+    "            #+#       #+# #+#     #+#  #+#      #+#            \n######## "
+    " ###     ###     ###     ##########          ###       ### ###     ### "
+    "######### ##########      \n";
+
 const char* loadTitle =  // Load Maze
     "      :::        ::::::::      :::     :::::::::            :::   :::     "
     "  :::     ::::::::: :::::::::: \n     :+:       :+:    :+:   :+: :+:   "
@@ -60,7 +75,6 @@ const char* customTitle =  // Custom
     "########   ########   ########     ###     ########  ###       ###     \n";
 
 // Prototypes
-void SaveMaze(Maze::MazeController& mc);
 void interruptHandler(int s);
 int playEasy();
 int playMedium();
@@ -68,22 +82,25 @@ int playHard();
 int playCustom();
 int customButton();
 int saveButton();
+int filenameButton();
 int loadButton();
 int loadMaze();
 int closeSubMenu();
 int ExitApp();
-int nothing() { return 0; }
 int updateConfirm();
+int nothing() { return 0; }
 
 // Entry
 int main(int /*argc*/, const char** /*argv[]*/) {
   Maze::MazeController mc;
   Menu::MenuController menu(title);
   Menu::MenuController loadMenu(loadTitle);
+  Menu::MenuController saveMenu(saveTitle);
   Menu::MenuController customMenu(customTitle);
   instance = &mc;
   menu_ = &menu;
   loadMenu_ = &loadMenu;
+  saveMenu_ = &saveMenu;
   customMenu_ = &customMenu;
 
   menu.addOption(Menu::MenuController::Option("Easy", &playEasy, true, true));
@@ -107,6 +124,13 @@ int main(int /*argc*/, const char** /*argv[]*/) {
   customMenu.addOption(Menu::MenuController::Option("Confirm", &customButton));
   customMenu.addOption(Menu::MenuController::Option("----------", &nothing, false, false));
   customMenu.addOption(Menu::MenuController::Option("Back", &closeSubMenu));
+
+  saveMenu.addOption(Menu::MenuController::Option("Filename:", &nothing, false, false));
+  filenameOptionIndex = saveMenu.getOptionList().size();
+  saveMenu.addOption(Menu::MenuController::Option(true, true));
+  saveMenu.addOption(Menu::MenuController::Option("Confirm", &filenameButton));
+  saveMenu.addOption(Menu::MenuController::Option("----------", &nothing, false, false));
+  saveMenu.addOption(Menu::MenuController::Option("Back", &closeSubMenu));
 
   // Handle execution interrupt.
   struct sigaction sigIntHandler;
@@ -146,29 +170,6 @@ int main(int /*argc*/, const char** /*argv[]*/) {
 }
 
 // Definitions
-void SaveMaze(Maze::MazeController& mc) {
-  bool tryAgain = true;
-  do {
-    cout << yellow << "Would you like to save the game? (Y/n): " << reset;
-    if (Campbell::Strings::getYesNo(true)) {
-      cout << yellow
-           << "Please enter the name of the file you would like to save to: "
-           << reset;
-      string filename;
-      getline(cin, filename);
-      cout << green << "Saving game...\r" << reset << flush;
-      if (mc.save((savesDir + filename).c_str())) {
-        cout << green << "Game successfull saved.\n" << reset;
-        tryAgain = false;
-      } else {
-        cout << red << "Game failed to save.\n" << reset;
-      }
-    } else {
-      cout << red << "Not saving.\n" << reset;
-      tryAgain = false;
-    }
-  } while (tryAgain);
-}
 // Catches Ctrl+C in order to call ExitApp properly.
 void interruptHandler(int s) {
   (void)s;
@@ -189,7 +190,6 @@ int playHard() {
   menu_->getOptionList()[saveOptionIndex].isSelectable = instance->width() > 0;
   return 1;
 }
-// TODO: Make curses menu for choosing size.
 int playCustom() {
   customMenu_->startMenu();
   return 1;
@@ -201,10 +201,19 @@ int customButton() {
   instance->play(rows, cols);
   return 1;
 }
-// TODO: Get user input for save location.
 int saveButton() {
-  SaveMaze(*instance);
+  saveMenu_->startMenu();
   return 1;
+}
+int filenameButton() {
+  if (instance->save(
+          (savesDir +
+           saveMenu_->getOptionList()[filenameOptionIndex].modifyableText)
+              .c_str())) {
+    return closeSubMenu();
+  } else {
+    return 0;
+  }
 }
 int loadButton() {
   DIR* dir;
@@ -247,7 +256,7 @@ int loadMaze() {
     instance->play();
     menu_->getOptionList()[saveOptionIndex].isSelectable =
         instance->width() > 0;
-    return 1;
+    return closeSubMenu();
   } else {
     return 0;
   }

@@ -32,6 +32,7 @@ class MenuController {
           isSelectable(isSelectable),
           isHighlighted(isHighlighted) {
       isNumber = false;
+      isTextInput = false;
     }
     Option(int number, int (*selectAction)(), bool isSelectable = true,
            bool isHighlighted = false)
@@ -40,12 +41,22 @@ class MenuController {
           isSelectable(isSelectable),
           isHighlighted(isHighlighted) {
       isNumber = true;
+      isTextInput = false;
+    }
+    Option(bool isSelectable = true, bool isHighlighted = false)
+        : isSelectable(isSelectable), isHighlighted(isHighlighted) {
+      isNumber = false;
+      isTextInput = true;
     }
 
     const char* text() const {
       if (isNumber) {
         std::ostringstream ss;
         ss << "<" << number << ">";
+        return ss.str().c_str();
+      } else if (isTextInput) {
+        std::ostringstream ss;
+        ss << "[" << modifyableText << "]";
         return ss.str().c_str();
       } else {
         return text_;
@@ -55,6 +66,7 @@ class MenuController {
     // The text of the option to show in the menu.
     const char* text_;
     int number;
+    std::string modifyableText;
     // The function to call when the button is selected.
     int (*selectAction)();
     // Whether or not the button can be selected.
@@ -63,6 +75,7 @@ class MenuController {
     bool isHighlighted;
     // If the option is a number that can be increased or decreased.
     bool isNumber;
+    bool isTextInput;
   };
 
   // Opens menu and takes over control flow.
@@ -114,6 +127,8 @@ class MenuController {
   std::vector<Option> optionList;
   // Title to show at the top before the options.
   const char* title;
+  // Get text input via curses screen.
+  std::string getString();
 };
 }  // namespace Menu
 

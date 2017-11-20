@@ -17,11 +17,13 @@ void MenuController::openMenu() {
 void MenuController::printMenu() const {
   if (!isWinOpen_) return;
   ::move(0, 0);
+  erase();
   clear();
   setColor(TITLE);
   addstr(title);
   unsetColor(TITLE);
   int startPos;
+  int cursorPos = 0;
   int titleWidth;
   getyx(stdscr, startPos, titleWidth);
   startPos += 2;
@@ -30,6 +32,7 @@ void MenuController::printMenu() const {
     if (optionList[i].isHighlighted) {
       setColor(HIGHLIGHTED);
       addch(' ');
+      cursorPos = startPos + i;
     } else if (!optionList[i].isSelectable) {
       setColor(DISABLED);
     } else {
@@ -56,15 +59,15 @@ void MenuController::printMenu() const {
   ::move(startPos+4, 20);
   addstr("RIGHT:   L or \u2192 (Right arrow)");
   ::move(startPos+5, 20);
-  addstr("SELECT:   Enter or HINT or GIVE UP");
-  ::move(startPos+5, 20);
-  addstr("HINT:    \"");
+  addstr("SELECT:  Enter or HINT or GIVE UP");
   ::move(startPos+6, 20);
-  addstr("GIVE UP: ?");
+  addstr("HINT:    \"");
   ::move(startPos+7, 20);
+  addstr("GIVE UP: ?");
+  ::move(startPos+8, 20);
   addstr("QUIT:    Q");
   unsetColor(INSTRUCTIONS);
-  ::move(0, 0);
+  ::move(cursorPos, 0);
   refresh();
 }
 void MenuController::closeMenu() { endWin(); }
@@ -139,9 +142,14 @@ bool MenuController::move(Input direction) {
       }
     }
     case SELECT:
-      closeMenu();
-      if (optionList[currentIndex].selectAction() != 100) openMenu();
-      return false;
+      if (optionList[currentIndex].isTextInput) {
+        optionList[currentIndex].modifyableText = getString();
+        return true;
+      } else {
+        closeMenu();
+        if (optionList[currentIndex].selectAction() != 100) openMenu();
+        return false;
+      }
     case LEFT:
     case RIGHT:
       if (optionList[currentIndex].isNumber) {
@@ -163,6 +171,37 @@ int MenuController::getNextIndex(Input direction) const {
     if (optionList[i].isSelectable) return i;
   }
   return currentIndex;
+}
+std::string MenuController::getString() {
+  std::string input;
+  int ch;
+
+  nocbreak();
+  echo();
+
+  optionList[currentIndex].modifyableText.clear();
+  printMenu();
+
+  int y, x;
+  getyx(stdscr, y, x);
+  ::move(y, x + 2);
+
+  setColor(HIGHLIGHTED);
+  while ((ch = getch())) {
+    if (ch == '\n' || ch <= 31) break;
+    unsetColor(HIGHLIGHTED);
+    input.push_back(ch);
+    printMenu();
+    getyx(stdscr, y, x);
+    ::move(y, x + 2);
+    setColor(HIGHLIGHTED);
+  }
+  unsetColor(HIGHLIGHTED);
+
+  cbreak();
+  noecho();
+
+  return input;
 }
 void MenuController::setColor(Colors index) const { attron(COLOR_PAIR(index)); }
 void MenuController::unsetColor(Colors index) const { attroff(COLOR_PAIR(index)); }
