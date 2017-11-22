@@ -175,8 +175,8 @@ class MenuController {
   const char* title;
   // Get text input via curses screen.
   std::string getString() const;
-};
-}  // namespace Menu
+}; // class Menu
+} // namespace Menu
 
 #include "Menu.cpp"
 #endif  // ifndef MENU_H

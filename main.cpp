@@ -155,7 +155,7 @@ int main(int /*argc*/, const char** /*argv[]*/) {
   sigIntHandler.sa_flags = 0;
   sigaction(SIGINT, &sigIntHandler, NULL);
 
-  // CHeck for previous session data.
+  // Check for previous session data.
   {
     struct stat buf;
     if (stat(Maze::lastSessionFilename, &buf) != -1) {
@@ -165,7 +165,7 @@ int main(int /*argc*/, const char** /*argv[]*/) {
       if (Campbell::Strings::getYesNo(true)) {
         string option = Maze::lastSessionFilename;
         if (!mc.load(option.c_str())) {
-          cout << red << "Failed to open file.\n" << reset;
+          cerr << red << "Failed to open file.\n" << reset;
           return 1;
         } else {
           mc.play();
@@ -297,8 +297,7 @@ int loadButton() {
 
   loadMenu_->clearOptions();
   for (int i = 0; i < (int)saveFiles.size(); ++i) {
-    loadMenu_->addOption(Option(saveFiles[i].c_str(),
-                                                    &loadMaze, true, i == 0));
+    loadMenu_->addOption(Option(saveFiles[i].c_str(), &loadMaze, true, i == 0));
   }
   loadMenu_->addOption(Option("-Close Menu-", &closeSubMenu));
   loadMenu_->startMenu();
