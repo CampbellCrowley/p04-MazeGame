@@ -1,7 +1,7 @@
 OBJS = MazeMaster
 
 p1: main.cpp CampbellLib/CampbellLib.cc CampbellLib/CampbellLib.h Maze.h Maze.cpp Menu.h Menu.cpp
-	g++ -g main.cpp -lncurses -o MazeMaster
+	g++ main.cpp -lncurses -o MazeMaster
 
 run:
 	./MazeMaster
