@@ -13,6 +13,7 @@ enum Colors {
   TITLE,
   INSTRUCTIONS,
   BACKGROUND,
+  ERROR,
   DISABLED
 };
 class MenuController {

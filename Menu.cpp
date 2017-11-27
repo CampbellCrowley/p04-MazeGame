@@ -43,7 +43,8 @@ void MenuController::printMenu() const {
     } else if (optionList[i].isTextInput) {
       addch('[');
     } else if (optionList[i].isList) {
-      addch('<');
+      addstr(optionList[i].text_);
+      addstr(": <");
     }
     addstr(optionList[i].text());
     if (optionList[i].isNumber) {
@@ -98,6 +99,7 @@ void MenuController::startWin() {
   init_pair(TITLE, COLOR_CYAN, COLOR_BLACK);
   init_pair(INSTRUCTIONS, COLOR_YELLOW, COLOR_BLACK);
   init_pair(BACKGROUND, COLOR_BLACK, COLOR_BLACK);
+  init_pair(ERROR, COLOR_BLACK, COLOR_RED);
   init_pair(DISABLED, COLOR_RED, COLOR_BLACK);
 
   // TODO: Doesn't seem to work?
@@ -166,15 +168,38 @@ bool MenuController::move(Input direction) {
         return false;
       } else {
         closeMenu();
-        if (optionList[currentIndex].selectAction() != 100) openMenu();
-        return false;
+        switch(optionList[currentIndex].selectAction()) {
+          case 0:
+            openMenu();
+            setColor(ERROR);
+            addstr("That didn't work!");
+            unsetColor(ERROR);
+            return false;
+          case 100:
+            return true;
+          case 1:
+          default:
+            openMenu();
+            return false;
+        }
       }
     case LEFT:
     case RIGHT:
       if (optionList[currentIndex].isNumber) {
         optionList[currentIndex].number += direction == LEFT ? -1 : 1;
-        if (optionList[currentIndex].selectAction() == 100) closeMenu();
-        return true;
+        switch(optionList[currentIndex].selectAction()) {
+          case 100:
+            closeMenu();
+            return true;
+          case 0:
+            setColor(ERROR);
+            addstr("An error occurred!");
+            unsetColor(ERROR);
+            return false;
+          case 1:
+          default:
+            return true;
+        }
       } else if (optionList[currentIndex].isList) {
         if ((optionList[currentIndex].currentValue >=
                  optionList[currentIndex].values.size() - 1 &&

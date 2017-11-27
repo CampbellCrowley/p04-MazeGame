@@ -215,6 +215,7 @@ int playHard() {
 // Chooses custom diffuclty and opens menu to pick settings.
 int playCustom() {
   customMenu_->startMenu();
+  menu_->getOptionList()[saveOptionIndex].isSelectable = instance_->width() > 0;
   return 1;
 }
 // Called when Confirm is chosen in custom menu, and begins the level with the
