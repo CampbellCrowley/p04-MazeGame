@@ -80,18 +80,14 @@ class MenuController {
     // Returns formatted c-style string for showing the user.
     const char* text() const {
       if (isNumber) {
-        std::ostringstream ss;
-        ss << "<" << number << ">";
+        std::stringstream ss;
+        ss << number;
         return ss.str().c_str();
       } else if (isTextInput) {
-        std::ostringstream ss;
-        ss << "[" << modifyableText << "]";
-        return ss.str().c_str();
+        return modifyableText.c_str();
       } else if (isList) {
         if (currentValue < values.size()) {
-          std::ostringstream ss;
-          ss << text_ << ": <" << values[currentValue] << ">";
-          return ss.str().c_str();
+          return values[currentValue].c_str();
         } else {
           return "Oops, this is broken.";
         }

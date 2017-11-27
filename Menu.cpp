@@ -38,7 +38,21 @@ void MenuController::printMenu() const {
     } else {
       setColor(NORMAL);
     }
+    if (optionList[i].isNumber) {
+      addch('<');
+    } else if (optionList[i].isTextInput) {
+      addch('[');
+    } else if (optionList[i].isList) {
+      addch('<');
+    }
     addstr(optionList[i].text());
+    if (optionList[i].isNumber) {
+      addch('>');
+    } else if (optionList[i].isTextInput) {
+      addch(']');
+    } else if (optionList[i].isList) {
+      addch('>');
+    }
     if (optionList[i].isHighlighted) {
       unsetColor(HIGHLIGHTED);
     } else if (!optionList[i].isSelectable) {
