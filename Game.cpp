@@ -31,7 +31,6 @@ void GameController::Initialize(int /*argc*/, const char** /*argv[]*/) {
   menu_.addOption(Menu::MenuController::Option(
       "----------", &Callbacks::nothing, false, false));
   saveOptionIndex_ = menu_.getOptionList().size();
-  cout << saveOptionIndex_ << endl;
   menu_.addOption(
       Menu::MenuController::Option("Save Maze", &Callbacks::saveButton, false));
   menu_.addOption(

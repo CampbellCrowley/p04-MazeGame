@@ -5,15 +5,12 @@
 #include "Common.h"
 #include "Game.h"
 
-#include <iostream>
-
 using namespace std;
 
 int Callbacks::playEasy() {
   game_.Instance().play(11, 11);
-  cout << game_.SaveOptionIndex() << endl;
-  // game_.MainMenu().getOptionList()[game_.SaveOptionIndex()].isSelectable =
-  //     game_.Instance().width() > 0;
+  game_.MainMenu().getOptionList()[game_.SaveOptionIndex()].isSelectable =
+      game_.Instance().width() > 0;
   return 1;
 }
 int Callbacks::playMedium() {
