@@ -168,7 +168,7 @@ bool MenuController::move(Input direction) {
         return false;
       } else {
         closeMenu();
-        switch(optionList[currentIndex].selectAction()) {
+        switch ((callbacks_.*optionList[currentIndex].selectAction)()) {
           case 0:
             openMenu();
             setColor(ERROR);
@@ -187,7 +187,7 @@ bool MenuController::move(Input direction) {
     case RIGHT:
       if (optionList[currentIndex].isNumber) {
         optionList[currentIndex].number += direction == LEFT ? -1 : 1;
-        switch(optionList[currentIndex].selectAction()) {
+        switch ((callbacks_.*optionList[currentIndex].selectAction)()) {
           case 100:
             closeMenu();
             return true;

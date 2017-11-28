@@ -7,6 +7,7 @@
 #include <fstream>
 
 namespace Maze {
+// File path to saves directory.
 const char MazeController::TileSymbols::EMPTY = '$';
 const char MazeController::TileSymbols::WALL = '#';
 const char MazeController::TileSymbols::START = '@';
@@ -15,6 +16,27 @@ const char MazeController::TileSymbols::CURRENT = '^';
 const char MazeController::TileSymbols::PREVIOUS = '.';
 const char MazeController::TileSymbols::UNKNOWN = 'E';
 const char MazeController::TileSymbols::HINT = 'H';
+const char *completeTitle =  // Maze Complete!
+    "                                    :::   :::       :::     ::::::::: "
+    "::::::::::                     \n                                  :+:+: "
+    ":+:+:    :+: :+:        :+:  :+:                             \n           "
+    "                     +:+ +:+:+ +:+  +:+   +:+      +:+   +:+              "
+    "                \n                               +#+  +:+  +#+ "
+    "+#++:++#++:    +#+    +#++:++#                          \n                "
+    "              +#+       +#+ +#+     +#+   +#+     +#+                     "
+    "           \n                             #+#       #+# #+#     #+#  #+#  "
+    "    #+#                                 \n                            ### "
+    "      ### ###     ### ######### ##########                           \n   "
+    "   ::::::::   ::::::::    :::   :::   :::::::::  :::        :::::::::: "
+    "::::::::::: :::::::::: ::: \n    :+:    :+: :+:    :+:  :+:+: :+:+:  :+:  "
+    "  :+: :+:        :+:            :+:     :+:        :+:  \n   +:+        "
+    "+:+    +:+ +:+ +:+:+ +:+ +:+    +:+ +:+        +:+            +:+     +:+ "
+    "       +:+   \n  +#+        +#+    +:+ +#+  +:+  +#+ +#++:++#+  +#+       "
+    " +#++:++#       +#+     +#++:++#   +#+    \n +#+        +#+    +#+ +#+    "
+    "   +#+ +#+        +#+        +#+            +#+     +#+        +#+     "
+    "\n#+#    #+# #+#    #+# #+#       #+# #+#        #+#        #+#           "
+    " #+#     #+#                 \n########   ########  ###       ### ###     "
+    "   ########## ##########     ###     ########## ###       \n";
 
 void MazeController::startWin() {
   // Handle NCurses.

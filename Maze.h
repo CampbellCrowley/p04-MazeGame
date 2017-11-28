@@ -4,6 +4,7 @@
 #include <vector>
 
 namespace Maze {
+static const char *lastSessionFilename = "saves/lastsession.dat";
 // Data that defines the maze and the characters to read from a file.
 enum TileData {
   EMPTY = 'E',
@@ -28,34 +29,10 @@ enum TileColor {
 };
 // Available movement directions and general controls.
 enum Direction { UP, DOWN, LEFT, RIGHT, NONE, EXIT, HELP, SOLVE };
-// Make typing a little easier.
-typedef std::vector<std::vector<TileData> > Maze;
-// File path to saves directory.
-const char *lastSessionFilename = "saves/lastsession.dat";
-const char *completeTitle =  // Maze Complete!
-    "                                    :::   :::       :::     ::::::::: "
-    "::::::::::                     \n                                  :+:+: "
-    ":+:+:    :+: :+:        :+:  :+:                             \n           "
-    "                     +:+ +:+:+ +:+  +:+   +:+      +:+   +:+              "
-    "                \n                               +#+  +:+  +#+ "
-    "+#++:++#++:    +#+    +#++:++#                          \n                "
-    "              +#+       +#+ +#+     +#+   +#+     +#+                     "
-    "           \n                             #+#       #+# #+#     #+#  #+#  "
-    "    #+#                                 \n                            ### "
-    "      ### ###     ### ######### ##########                           \n   "
-    "   ::::::::   ::::::::    :::   :::   :::::::::  :::        :::::::::: "
-    "::::::::::: :::::::::: ::: \n    :+:    :+: :+:    :+:  :+:+: :+:+:  :+:  "
-    "  :+: :+:        :+:            :+:     :+:        :+:  \n   +:+        "
-    "+:+    +:+ +:+ +:+:+ +:+ +:+    +:+ +:+        +:+            +:+     +:+ "
-    "       +:+   \n  +#+        +#+    +:+ +#+  +:+  +#+ +#++:++#+  +#+       "
-    " +#++:++#       +#+     +#++:++#   +#+    \n +#+        +#+    +#+ +#+    "
-    "   +#+ +#+        +#+        +#+            +#+     +#+        +#+     "
-    "\n#+#    #+# #+#    #+# #+#       #+# #+#        #+#        #+#           "
-    " #+#     #+#                 \n########   ########  ###       ### ###     "
-    "   ########## ##########     ###     ########## ###       \n";
-
 class MazeController {
  public:
+  // Make typing a little easier.
+  typedef std::vector<std::vector<TileData> > Maze;
   MazeController() {
     isSolutionValid = false;
     isWinOpen_ = false;
@@ -133,7 +110,7 @@ class MazeController {
     static const char HINT;
   };
 
-protected:
+ protected:
   // Starts curses window.
   void startWin();
   // Ends curses window.
@@ -184,5 +161,4 @@ protected:
 };  // class MazeController
 }  // namespace Maze
 
-#include "Maze.cpp"
 #endif  // ifndef MAZE_H

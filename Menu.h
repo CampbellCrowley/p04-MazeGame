@@ -2,6 +2,7 @@
 #define MENU_H
 #include <sstream>
 #include <vector>
+#include "Callbacks.h"
 
 namespace Menu {
 // Available inputs.
@@ -25,11 +26,15 @@ class MenuController {
   ~MenuController() { endWin(); }
 
   // An option to show in the menu list.
+  // TODO: Move all options to inheritable classes.
   // Shows selectable option with title and callback.
   struct Option {
-    Option(const char *text_, int (*selectAction)(), bool isSelectable = true,
-           bool isHighlighted = false)
-        : text_(text_), selectAction(selectAction), isSelectable(isSelectable),
+    typedef int (Callbacks::*callback)();
+    Option(const char* text_, callback selectAction,
+           bool isSelectable = true, bool isHighlighted = false)
+        : text_(text_),
+          selectAction(selectAction),
+          isSelectable(isSelectable),
           isHighlighted(isHighlighted) {
       isNumber = false;
       isTextInput = false;
@@ -37,7 +42,7 @@ class MenuController {
     }
     // Shows number that is changeable with callback that is called if value
     // changes.
-    Option(int number, int (*selectAction)(), bool isSelectable = true,
+    Option(int number, callback selectAction, bool isSelectable = true,
            bool isHighlighted = false)
         : number(number),
           selectAction(selectAction),
@@ -54,18 +59,6 @@ class MenuController {
       isNumber = false;
       isList = false;
       isTextInput = true;
-    }
-    // Shows a title for this option as well as true or false which can be
-    // toggled.
-    Option(const char *text_, bool toggled = false, bool isSelectable = true,
-           bool isHighlighted = false)
-        : text_(text_), currentValue(toggled), isSelectable(isSelectable),
-          isHighlighted(isHighlighted) {
-      values.push_back("false");
-      values.push_back("TRUE");
-      isNumber = false;
-      isTextInput = false;
-      isList = true;
     }
     // Allows a choice between a list of options.
     Option(const char *text_, const std::vector<std::string> &values,
@@ -108,7 +101,7 @@ class MenuController {
     unsigned int currentValue;
 
     // The function to call when the button is selected. Not used in text input.
-    int (*selectAction)();
+    callback selectAction;
     // Whether or not the option can be selected.
     bool isSelectable;
     // If the option is highlighted.
@@ -172,8 +165,9 @@ class MenuController {
   const char* title;
   // Get text input via curses screen.
   std::string getString() const;
+
+  Callbacks callbacks_;
 }; // class Menu
 } // namespace Menu
 
-#include "Menu.cpp"
 #endif  // ifndef MENU_H
