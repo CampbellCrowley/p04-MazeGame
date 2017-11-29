@@ -16,11 +16,11 @@ Use make to automatically build and run **(Preferred)**:
 - Build: `make`  
 - Run: `make run`  
 
-**or**  
-
 Manually (without Make):  
 - Build: `g++ main.cpp -lncurses -o data/MazeMaster include/Maze.cpp include/Menu.cpp include/Game.cpp include/Callbacks.cpp`  
 - Run: `./data/MazeMaster`  
+
+---
 
 Tested on Linux:  
 - Debian 8.9 (jessie amd64) compiled using g++ 4.9.2,  
@@ -79,20 +79,19 @@ A maze is a matrix of TileData which is an enum of different possible tiles in t
 Option is a structure for storing relevant data for any option that may be on the menu. This is then stored in a vector as the menu only supports a list of options, not a grid, and will also be expandable for any number or type of options.
 
 ## Function
-### [Callbacks.cpp](/include/Callbacks.cpp) lines [10-153](/include/Callbacks.cpp#L10-L153)  
-### [Callbacks.h](/include/Callbacks.h) lines [4-36](/include/Callbacks.h#L4-L36)  
+### [Callbacks.cpp](/include/Callbacks.cpp) lines [10-153](/include/Callbacks.cpp#L10-L153); [Callbacks.h](/include/Callbacks.h) lines [4-36](/include/Callbacks.h#L4-L36)  
 Most menu options and callbacks are defined here.
 
-### [Maze.cpp](/include/Maze.cpp) lines [41-653](/include/Maze.cpp#L41-L653)  
-### [Maze.h](/include/Maze.h) lines [32-164](/include/Maze.h#L32-L164)  
+### [Maze.cpp](/include/Maze.cpp) lines [41-653](/include/Maze.cpp#L41-L653); [Maze.h](/include/Maze.h) lines [32-164](/include/Maze.h#L32-L164)  
 Maze control, generation, solving, fault-checking, helper-functions, file I/O, and user I/O is managed here.
 
-### [Menu.cpp](/include/Menu.cpp) lines [4-266](/include/Menu.cpp#L4-L266)  
-### [Menu.h](/include/Menu.h) lines [20-170](/include/Menu.h#L20-L170)  
+### [Menu.cpp](/include/Menu.cpp) lines [4-266](/include/Menu.cpp#L4-L266); [Menu.h](/include/Menu.h) lines [20-170](/include/Menu.h#L20-L170)  
 Menu control, helper-functions, user I/O and option generating is managed here.
 
-### [CampbellLib.cc](/include/CampbellLib/CampbellLib.cc) lines [5-83](/include/CampbellLib/CampbellLib.cc#L5-L83)  
-### [CampbellLib.h](/include/CampbellLib/CampbellLib.h) lines [9-96](/include/CampbellLib/CampbellLib.h#L9-L96)  
+### [Game.cpp](/include/Game.cpp) lines [15-106](/include/Game.cpp#L15-L106); [Game.h](/include/Game.h) lines [16-59](/include/Game.h#L16-L59)  
+Overall manager of menu and maze controllers and overwatch over execution state and control flow.
+
+### [CampbellLib.cc](/include/CampbellLib/CampbellLib.cc) lines [5-83](/include/CampbellLib/CampbellLib.cc#L5-L83); [CampbellLib.h](/include/CampbellLib/CampbellLib.h) lines [9-96](/include/CampbellLib/CampbellLib.h#L9-L96)  
 A collection of helper-functions that I use often and found helpful across multiple projects.
 
 ## File IO
