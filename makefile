@@ -1,10 +1,20 @@
-OBJS = data/MazeMaster
+GXX = g++
+GXXFLAGS = -g
+OBJS = MazeMaster.o
+OUTDIR = data
+LIBS = -lncurses
 
-p1: main.cpp include/CampbellLib/CampbellLib.cc include/CampbellLib/CampbellLib.h include/Maze.h include/Maze.cpp include/Menu.h include/Menu.cpp include/Game.h include/Game.cpp include/Titles.h include/Titles.cpp include/Callbacks.h include/Callbacks.cpp
-	g++ main.cpp -lncurses -o data/MazeMaster include/Maze.cpp include/Menu.cpp include/Game.cpp include/Callbacks.cpp include/Titles.cpp
+INCLUDES = $(addprefix -I, $(sort $(dir $(wildcard include/* include/**/*))))
+EXCLUDESRCS = $(wildcard *test.cpp include/*test.cpp include/**/*test.cpp *test.cc include/*test.cc include/**/*test.cc)
+SRCS = main.cpp $(wildcard include/*.cc include/**/*.cc include/*.cpp include/**/*.cpp)
+SRCS := $(filter-out $(EXCLUDESRCS), $(SRCS))
+HDRS = $(wildcard include/*.h include/**/*.h)
 
-run: data/MazeMaster
-	./data/MazeMaster
+$(OUTDIR)/$(OBJS): $(SRCS) $(HDRS)
+	$(GXX) $(GXXFLAGS) $(LIBS) $(INCLUDES) -o $@ $(SRCS)
+
+run: $(OUTDIR)/$(OBJS)
+	./$<
 
 clean:
-	\rm -f data/MazeMaster saves/lastsession.dat
+	\rm -f $(OUTDIR)/$(OBJS) saves/lastsession.dat

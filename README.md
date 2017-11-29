@@ -17,7 +17,7 @@ Use make to automatically build and run **(Preferred)**:
 - Run: `make run`  
 
 Manually (without Make):  
-- Build: `g++ main.cpp -lncurses -o data/MazeMaster include/Maze.cpp include/Menu.cpp include/Game.cpp include/Callbacks.cpp`  
+- Build: `g++ main.cpp -lncurses -Iinclude -Iinclude/CampbellLib -o data/MazeMaster include/Maze.cpp include/Menu.cpp include/Game.cpp include/Callbacks.cpp include/CampbellLib/CampbellLib.cc`  
 - Run: `./data/MazeMaster`  
 
 ---

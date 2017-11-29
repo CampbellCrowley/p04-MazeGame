@@ -6,9 +6,9 @@
 
 namespace Campbell {
 // Other common things that don't have their own place yet.
-namespace Common {
+struct Common {
 static bool isdigit(const char input);
-}; // namespace Common
+}; // struct Common
 
 // For things relating to color in the terminal.
 namespace Color {
@@ -25,7 +25,7 @@ static const char *white = "\033[1;37m";
 }; // namespace Color
 
 // For things relating to arrays.
-namespace Arrays {
+struct Arrays {
 // Finds the number of elements in an array input[].
 static inline int length(const char *input) {
   int Size = 0;
@@ -33,14 +33,15 @@ static inline int length(const char *input) {
     Size++;
   return Size;
 }
-template <typename T> static inline int length(T &input) {
+template <typename T>
+static inline int length(T &input) {
   return sizeof input / sizeof input[0];
 }
-}; // namespace Arrays
+}; // struct Arrays
 
 // For things relating to arrays of characters and their manipuation or
 // comparison.
-namespace Strings {
+struct Strings {
 // Check if a string is a valid number. May start with -/+ and contain one
 // decimal and contain only numbers.
 static bool isNumber(const char input[]);
@@ -54,10 +55,10 @@ static double toNumber(const char input[]);
 static bool toYesNo(const char input[], bool defaultYes = true);
 static bool getYesNo(bool defaultYes = true);
 
-}; // namespace Strings
+}; // struct Strings
 
 // Class for writing tests.
-class Test {
+struct Test {
 private:
   Test() {}
 
@@ -93,8 +94,7 @@ public:
     }
   }
 
-}; // class Test
+}; // struct Test
 } // namespace Campbell
 
-#include "CampbellLib.cc"
 #endif // CAMPBELL_LIB_H
