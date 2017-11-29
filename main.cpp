@@ -1,5 +1,4 @@
-#include "Common.h"
-#include "Game.h"
+#include "include/Game.h"
 
 Game::GameController game_;
 int main(int argc, const char* argv[]) {

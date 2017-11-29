@@ -1,10 +1,10 @@
-OBJS = MazeMaster
+OBJS = data/MazeMaster
 
-p1: main.cpp CampbellLib/CampbellLib.cc CampbellLib/CampbellLib.h Maze.h Maze.cpp Menu.h Menu.cpp Game.h Game.cpp Titles.h Callbacks.h Callbacks.cpp
-	g++ main.cpp -g -lncurses -o MazeMaster Maze.cpp Menu.cpp Game.cpp Callbacks.cpp
+p1: main.cpp include/CampbellLib/CampbellLib.cc include/CampbellLib/CampbellLib.h include/Maze.h include/Maze.cpp include/Menu.h include/Menu.cpp include/Game.h include/Game.cpp include/Titles.h include/Callbacks.h include/Callbacks.cpp
+	g++ main.cpp -lncurses -o data/MazeMaster include/Maze.cpp include/Menu.cpp include/Game.cpp include/Callbacks.cpp
 
-run:
-	./MazeMaster
+run: data/MazeMaster
+	./data/MazeMaster
 
 clean:
-	\rm -f MazeMaster saves/lastsession.dat
+	\rm -f data/MazeMaster saves/lastsession.dat

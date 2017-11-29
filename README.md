@@ -12,88 +12,106 @@
 
 ## Compiling
 **MUST COMPILE USING `-lncurses`!**  
-Example: `g++ -lncurses main.cpp`  
-**or**  
 Use make to automatically build and run **(Preferred)**:  
 - Build: `make`  
-- Run: `make run`
+- Run: `make run`  
+**or**  
+Manually (without Make):  
+- Build: `g++ main.cpp -lncurses -o data/MazeMaster include/Maze.cpp include/Menu.cpp include/Game.cpp include/Callbacks.cpp`  
+- Run: `./data/MazeMaster`  
 
-Only tested on Linux using C++ (pre-11) compiled using g++ 4.9.2.
+Tested on Linux:  
+- Debian 8.9 (jessie amd64) compiled using g++ 4.9.2,  
+- Debian 9.2 (stretch amd64) compiled using g++ 6.3.0,  
+- Ubuntu 16.04.5 LTS (amd64) compiled using g++ 5.4.0.  
 
 ## Input/Output
-### [main.cpp](/main.cpp) lines [160-185](/main.cpp#L160-L185)  
-Uses `cout` and `Campbell::Strings::getYesNo()` to promt the user for their preference of what they wish to do with previous session data. `Cerr` is also used in the case that something goes wrong.
+### [Game.cpp](/include/Game.cpp) lines [72-80](/include/Game.cpp#L72-L80)  
+Uses `cout` and `Campbell::Strings::getYesNo()` to promt the user for their preference of what they wish to do with previous session data. `cerr` is also used in the case that something goes wrong.
 
-### [Maze.cpp](/Maze.cpp) lines [159-204](/Maze.cpp#L159-L204), [599-631](/Maze.cpp#L599-L631)  
+### [Maze.cpp](/include/Maze.cpp) lines [181-226](/include/Maze.cpp#L181-L226), [621-653](/include/Maze.cpp#L621-L653)  
 Prints the maze to the NCurses screen via `waddch()`. User input is received via keypresses to NCurses screen via `getch()` with the `cbreak` and `noecho` options set to prevent characters from being displayed on the screen.
 
-### [Menu.cpp](/Menu.cpp) lines [17-72](/Menu.cpp#L17-L72), [98-130](/Menu.cpp#L98-L130), [192-219](/Menu.cpp#L98-L130)  
+### [Menu.cpp](/include/Menu.cpp) lines [17-87](/include/Menu.cpp#L17-L87), [114-146](/include/Menu.cpp#L114-L146), [221-258](/include/Menu.cpp#L221-L258)  
 Prints the menu to the NCurses screen via `addstr()`, and `addch()`. Input is received two ways depending on the situation:
   1) Via `getch()` with `cbreak` and `noecho` set, for directional input and choosing options in a list.
   2) Via `getch()` with `nocbreak` and `echo` set, for inputting user typed strings in this case for typing a filename.
 
-### [CampbellLib.cc](/CampbellLib/CampbellLib.cc) lines [79-83](/CampbellLib/CampbellLib.cc#L79-L83)  
+### [CampbellLib.cc](/include/CampbellLib/CampbellLib.cc) lines [79-83](/include/CampbellLib/CampbellLib.cc#L79-L83)  
 Input is received using `getline()` in cconjunction with `cin` to ensure the whole line is inputted and no trailing characters are left to create unwanted behaviour in the future.
 
 ## Control Flow
-### [main.cpp](/main.cpp) lines [161-182](/main.cpp#L161-L182)  
+### [Game.cpp](/include/Game.cpp) lines [71-87](/include/Game.cpp#L71-L87)  
 Control flow is modified based on the user inputs and state of the filesystem.
 
-### [Maze.cpp](/Maze.cpp) lines [43-292](/Maze.cpp#L43-L292)  
+### [Maze.cpp](/include/Maze.cpp) lines [65-109](/include/Maze.cpp#L65-L109)  
 Throughout this area is where most of the game logic takes place using switch, if, else if, and else statements; while and for loops; as well as `break` and `return`.
 
-### [Menu.cpp](/Menu.cpp) lines [4-181](/Menu.cpp#L4-L181)  
+### [Menu.cpp](/include/Menu.cpp) lines [4-219](/include/Menu.cpp#L4-L219)  
 This section contains most of the menu control logic and manages user input while in a menu.
 
-## Iteration
-### [main.cpp](/main.cpp) lines [236-307](/main.cpp#L263-L307)  
-Different arrays, matrices, and strings are iterated through to modify or parse data. The maze matrix is iterated through to purge data, a directory's data is iterated through to create an array of available filenames, which are then in turn iterated through to add to a menu.
+### [Callbacks.cpp](/include/Callbacks.cpp) lines [10-153](/include/Callbacks.cpp#L10-L153)  
+Here each of the callbacks which are called when menu buttons are pressed control where the program goes next.
 
-### [Maze.cpp](/Maze.cpp) lines [43-597](/Maze.cpp#L43-L597)  
+## Iteration
+### [Maze.cpp](/include/Maze.cpp) lines [65-618](/include/Maze.cpp#L65-L618)  
 The maze and solution matrices are iterated through for different purposes. To print to the screen, to generate the maze, solve the maze, saving to a file, reading from a file, and parsing the read data into a useable format.
 
-### [Menu.cpp](/Menu.cpp) lines [17-72](/Menu.cpp#L17-L72)  
+### [Menu.cpp](/include/Menu.cpp) lines [17-64](/include/Menu.cpp#L17-L64)  
 The menu array is iterated through in order to print each option to the screen.
 
-### [CampbellLib.cc](/CampbellLib/CampbellLib.cc) lines [10-61](/CampbellLib/CampbellLib.cc#L10-L61)  
+### [Callbacks.cpp](/include/Callbacks.cpp) lines [47-121](/include/Callbacks.cpp#L47-L121)  
+Different arrays, matrices, and strings are iterated through to modify or parse data. The maze matrix is iterated through to purge data, a directory's data is iterated through to create an array of available filenames, which are then in turn iterated through to add to a menu.
+
+### [CampbellLib.cc](/include/CampbellLib/CampbellLib.cc) lines [10-61](/include/CampbellLib/CampbellLib.cc#L10-L61)  
 Strings are iterated over to check if it could be converted to a number then to actually convert the string to a number.
 
 ## Data Structure
-### [main.cpp](/main.cpp) lines [31-78](/main.cpp#L31-L78)  
+### [Titles.h](/include/Titles.h) lines [4-70](/include/Titles.h#L4-L70)  
 Titles are stored in c-style strings. This is because they can be optimized by the compiler, they also will allocate memory before `int main()` is called and will reduce calls to malloc during runtime when menus are loaded.
 
-### [Maze.h](/Maze.h) lines [8-185](/Maze.h#L8-L185)  
+### [Maze.h](/include/Maze.h) lines [7-164](/include/Maze.h#L7-L164)  
 A maze is a matrix of TileData which is an enum of different possible tiles in the maze. This is because a maze is a 2D grid of data and can be represented as either `EMPTY` or a `WALL`. Other values are for generating the maze, file I/O, and determining the start and end of the maze. The symbols displayed on the screen are a struct of chars to store each character in an easily accessible unit. Possible input options are also stored in a enum.
 
-### [Menu.h](/Menu.h) lines [8-178](/Menu.h#L8-L178)  
+### [Menu.h](/include/Menu.h) lines [8-171](/include/Menu.h#L8-L171)  
 Option is a structure for storing relevant data for any option that may be on the menu. This is then stored in a vector as the menu only supports a list of options, not a grid, and will also be expandable for any number or type of options.
 
 ## Function
-### [main.cpp](/main.cpp) lines [80-337](/main.cpp#L80-L337)  
+### [Callbacks.cpp](/include/Callbacks.cpp) lines [10-153](/include/Callbacks.cpp#L10-L153)  
+### [Callbacks.h](/include/Callbacks.h) lines [4-36](/include/Callbacks.h#L4-L36)  
 Most menu options and callbacks are defined here.
 
-### [Maze.cpp](/Maze.cpp) lines [19-630](/Maze.cpp#L19-L630)  
-### [Maze.h](/Maze.h) lines [59-184](/Maze.h#L59-L184)  
+### [Maze.cpp](/include/Maze.cpp) lines [41-653](/include/Maze.cpp#L41-L653)  
+### [Maze.h](/include/Maze.h) lines [32-164](/include/Maze.h#L32-L164)  
 Maze control, generation, solving, fault-checking, helper-functions, file I/O, and user I/O is managed here.
 
-### [Menu.cpp](/Menu.cpp) lines [4-227](/Menu.cpp#L4-L227)  
-### [Menu.h](/Menu.h) lines [18-178](/Menu.h#L18-L178)  
+### [Menu.cpp](/include/Menu.cpp) lines [4-266](/include/Menu.cpp#L4-L266)  
+### [Menu.h](/include/Menu.h) lines [20-170](/include/Menu.h#L20-L170)  
 Menu control, helper-functions, user I/O and option generating is managed here.
 
-### [CampbellLib.cc](/CampbellLib/CampbellLib.cc) lines [5-83](/CampbellLib/CampbellLib.cc#L5-L83)  
-### [CampbellLib.h](/CampbellLib/CampbellLib.h) lines [9-96](/CampbellLib/CampbellLib.h#L9-L96)  
+### [CampbellLib.cc](/include/CampbellLib/CampbellLib.cc) lines [5-83](/include/CampbellLib/CampbellLib.cc#L5-L83)  
+### [CampbellLib.h](/include/CampbellLib/CampbellLib.h) lines [9-96](/include/CampbellLib/CampbellLib.h#L9-L96)  
 A collection of helper-functions that I use often and found helpful across multiple projects.
 
 ## File IO
-### [main.cpp](/main.cpp) lines [160-176](/main.cpp#L160-L176), [276-306](/main.cpp#L276-L306)  
-`saves/lastsession.dat` is checked to see if it exists. The `saves/` directory is statted to list all files in the load menu.
+### [Game.cpp](/include/Game.cpp) lines [69-89](/include/Game.cpp#L69-L89)  
+`saves/lastsession.dat` is checked to see if it exists.
 
-### [Maze.cpp](/Maze.cpp) lines [96-157](/Maze.cpp#L96-L157)  
+### [Maze.cpp](/include/Maze.cpp) lines [118-180](/include/Maze.cpp#L118-L180)  
 The maze is converted to a file as well as parsed from a file here in order to save session state or load user's choice of maze.
 
+### [Callbacks.cpp](/include/Callbacks.cpp) lines [89-121](/include/Callbacks.cpp#L89-L121)  
+The `saves/` directory is statted to list all files in the load menu.
+
 ## Class
-### [Maze.h](/Maze.h) lines [57-184](/Maze.h#L57-L184)  
+### [Maze.h](/include/Maze.h) lines [32-161](/include/Maze.h#L32-L161)  
 The `Maze::MazeController` class is declared here. Stores everything a maze would need to be self-contained.
 
-### [Menu.h](/Menu.h) lines [18-178](/Menu.h#L18-L178)  
+### [Menu.h](/include/Menu.h) lines [20-170](/include/Menu.h#L20-L170)  
 Everything pertaining to a self-contained menu is declared here in `Menu::MenuController`.
+
+### [Game.h](/include/Game.h) lines [16-61](/include/Game.h#L16-L61)  
+The overarching class that controls the entirity of the program is declared here in `Game::GameController`.
+
+### [Callbacks.h](/include/Callbacks.h) lines [4-36](/include/Callbacks.h#L4-L36)  
+All menu button callbacks are declared here in `Callbacks`.
