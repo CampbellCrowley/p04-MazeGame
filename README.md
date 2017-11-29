@@ -31,7 +31,7 @@ Tested on Linux:
 ### [Game.cpp](/include/Game.cpp) lines [72-80](/include/Game.cpp#L72-L80)  
 Uses `cout` and `Campbell::Strings::getYesNo()` to promt the user for their preference of what they wish to do with previous session data. `cerr` is also used in the case that something goes wrong.
 
-### [Maze.cpp](/include/Maze.cpp) lines [181-226](/include/Maze.cpp#L181-L226), [621-653](/include/Maze.cpp#L621-L653)  
+### [Maze.cpp](/include/Maze.cpp) lines [161-206](/include/Maze.cpp#L161-L206), [601-633](/include/Maze.cpp#L601-L633)  
 Prints the maze to the NCurses screen via `waddch()`. User input is received via keypresses to NCurses screen via `getch()` with the `cbreak` and `noecho` options set to prevent characters from being displayed on the screen.
 
 ### [Menu.cpp](/include/Menu.cpp) lines [17-87](/include/Menu.cpp#L17-L87), [114-146](/include/Menu.cpp#L114-L146), [221-258](/include/Menu.cpp#L221-L258)  
@@ -46,7 +46,7 @@ Input is received using `getline()` in cconjunction with `cin` to ensure the who
 ### [Game.cpp](/include/Game.cpp) lines [71-87](/include/Game.cpp#L71-L87)  
 Control flow is modified based on the user inputs and state of the filesystem.
 
-### [Maze.cpp](/include/Maze.cpp) lines [65-109](/include/Maze.cpp#L65-L109)  
+### [Maze.cpp](/include/Maze.cpp) lines [45-89](/include/Maze.cpp#L45-L89)  
 Throughout this area is where most of the game logic takes place using switch, if, else if, and else statements; while and for loops; as well as `break` and `return`.
 
 ### [Menu.cpp](/include/Menu.cpp) lines [4-219](/include/Menu.cpp#L4-L219)  
@@ -56,7 +56,7 @@ This section contains most of the menu control logic and manages user input whil
 Here each of the callbacks which are called when menu buttons are pressed control where the program goes next.
 
 ## Iteration
-### [Maze.cpp](/include/Maze.cpp) lines [65-618](/include/Maze.cpp#L65-L618)  
+### [Maze.cpp](/include/Maze.cpp) lines [45-598](/include/Maze.cpp#L45-L598)  
 The maze and solution matrices are iterated through for different purposes. To print to the screen, to generate the maze, solve the maze, saving to a file, reading from a file, and parsing the read data into a useable format.
 
 ### [Menu.cpp](/include/Menu.cpp) lines [17-64](/include/Menu.cpp#L17-L64)  
@@ -82,7 +82,7 @@ Option is a structure for storing relevant data for any option that may be on th
 ### [Callbacks.cpp](/include/Callbacks.cpp) lines [10-153](/include/Callbacks.cpp#L10-L153); [Callbacks.h](/include/Callbacks.h) lines [4-36](/include/Callbacks.h#L4-L36)  
 Most menu options and callbacks are defined here.
 
-### [Maze.cpp](/include/Maze.cpp) lines [41-653](/include/Maze.cpp#L41-L653); [Maze.h](/include/Maze.h) lines [32-164](/include/Maze.h#L32-L164)  
+### [Maze.cpp](/include/Maze.cpp) lines [21-633](/include/Maze.cpp#L21-L633); [Maze.h](/include/Maze.h) lines [32-164](/include/Maze.h#L32-L164)  
 Maze control, generation, solving, fault-checking, helper-functions, file I/O, and user I/O is managed here.
 
 ### [Menu.cpp](/include/Menu.cpp) lines [4-266](/include/Menu.cpp#L4-L266); [Menu.h](/include/Menu.h) lines [20-170](/include/Menu.h#L20-L170)  
@@ -98,7 +98,7 @@ A collection of helper-functions that I use often and found helpful across multi
 ### [Game.cpp](/include/Game.cpp) lines [69-89](/include/Game.cpp#L69-L89)  
 `saves/lastsession.dat` is checked to see if it exists.
 
-### [Maze.cpp](/include/Maze.cpp) lines [118-180](/include/Maze.cpp#L118-L180)  
+### [Maze.cpp](/include/Maze.cpp) lines [98-160](/include/Maze.cpp#L98-L160)  
 The maze is converted to a file as well as parsed from a file here in order to save session state or load user's choice of maze.
 
 ### [Callbacks.cpp](/include/Callbacks.cpp) lines [89-121](/include/Callbacks.cpp#L89-L121)  

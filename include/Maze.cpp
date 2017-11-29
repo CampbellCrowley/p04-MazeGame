@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <fstream>
+#include "Titles.h"
 
 namespace Maze {
 // File path to saves directory.
@@ -16,27 +17,6 @@ const char MazeController::TileSymbols::CURRENT = '^';
 const char MazeController::TileSymbols::PREVIOUS = '.';
 const char MazeController::TileSymbols::UNKNOWN = 'E';
 const char MazeController::TileSymbols::HINT = 'H';
-const char *completeTitle =  // Maze Complete!
-    "                                    :::   :::       :::     ::::::::: "
-    "::::::::::                     \n                                  :+:+: "
-    ":+:+:    :+: :+:        :+:  :+:                             \n           "
-    "                     +:+ +:+:+ +:+  +:+   +:+      +:+   +:+              "
-    "                \n                               +#+  +:+  +#+ "
-    "+#++:++#++:    +#+    +#++:++#                          \n                "
-    "              +#+       +#+ +#+     +#+   +#+     +#+                     "
-    "           \n                             #+#       #+# #+#     #+#  #+#  "
-    "    #+#                                 \n                            ### "
-    "      ### ###     ### ######### ##########                           \n   "
-    "   ::::::::   ::::::::    :::   :::   :::::::::  :::        :::::::::: "
-    "::::::::::: :::::::::: ::: \n    :+:    :+: :+:    :+:  :+:+: :+:+:  :+:  "
-    "  :+: :+:        :+:            :+:     :+:        :+:  \n   +:+        "
-    "+:+    +:+ +:+ +:+:+ +:+ +:+    +:+ +:+        +:+            +:+     +:+ "
-    "       +:+   \n  +#+        +#+    +:+ +#+  +:+  +#+ +#++:++#+  +#+       "
-    " +#++:++#       +#+     +#++:++#   +#+    \n +#+        +#+    +#+ +#+    "
-    "   +#+ +#+        +#+        +#+            +#+     +#+        +#+     "
-    "\n#+#    #+# #+#    #+# #+#       #+# #+#        #+#        #+#           "
-    " #+#     #+#                 \n########   ########  ###       ### ###     "
-    "   ########## ##########     ###     ########## ###       \n";
 
 void MazeController::startWin() {
   // Handle NCurses.
@@ -96,7 +76,7 @@ void MazeController::play(int generateRows, int generateCols) {
       usleep(100000);
       wattron(stdscr, COLOR_PAIR(10));
       ::move(height / 2 - 10, 0);
-      addstr(completeTitle);
+      addstr(Titles::completeTitle);
       addstr("Press 'Q' to quit\nMovement is unlocked.\n");
       wattroff(stdscr, COLOR_PAIR(10));
       refresh();
