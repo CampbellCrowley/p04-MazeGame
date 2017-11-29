@@ -1,7 +1,7 @@
 OBJS = data/MazeMaster
 
-p1: main.cpp include/CampbellLib/CampbellLib.cc include/CampbellLib/CampbellLib.h include/Maze.h include/Maze.cpp include/Menu.h include/Menu.cpp include/Game.h include/Game.cpp include/Titles.h include/Callbacks.h include/Callbacks.cpp
-	g++ main.cpp -lncurses -o data/MazeMaster include/Maze.cpp include/Menu.cpp include/Game.cpp include/Callbacks.cpp
+p1: main.cpp include/CampbellLib/CampbellLib.cc include/CampbellLib/CampbellLib.h include/Maze.h include/Maze.cpp include/Menu.h include/Menu.cpp include/Game.h include/Game.cpp include/Titles.h include/Titles.cpp include/Callbacks.h include/Callbacks.cpp
+	g++ main.cpp -lncurses -o data/MazeMaster include/Maze.cpp include/Menu.cpp include/Game.cpp include/Callbacks.cpp include/Titles.cpp
 
 run: data/MazeMaster
 	./data/MazeMaster
