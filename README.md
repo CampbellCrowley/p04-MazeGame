@@ -69,7 +69,7 @@ Different arrays, matrices, and strings are iterated through to modify or parse 
 Strings are iterated over to check if it could be converted to a number then to actually convert the string to a number.
 
 ## Data Structure
-### [Titles.h](/include/Titles.h) lines [4-70](/include/Titles.h#L4-L70)  
+### [Titles.h](/include/Titles.h) lines [3-11](/include/Titles.h#L3-L11)  
 Titles are stored in c-style strings. This is because they can be optimized by the compiler, they also will allocate memory before `int main()` is called and will reduce calls to malloc during runtime when menus are loaded.
 
 ### [Maze.h](/include/Maze.h) lines [7-164](/include/Maze.h#L7-L164)  
@@ -105,6 +105,9 @@ The maze is converted to a file as well as parsed from a file here in order to s
 The `saves/` directory is statted to list all files in the load menu.
 
 ## Class
+### [Titles.h](/include/Titles.h) lines [3-11](/include/Titles.h#L3-L11)  
+Titles are congregated here.
+
 ### [Maze.h](/include/Maze.h) lines [32-161](/include/Maze.h#L32-L161)  
 The `Maze::MazeController` class is declared here. Stores everything a maze would need to be self-contained.
 
