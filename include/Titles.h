@@ -6,5 +6,7 @@ struct Titles {
   static const char* loadTitle;      // Load Maze
   static const char* customTitle;    // Custom
   static const char* completeTitle;  // Maze Complete!
+ private:
+  Titles() {}
 };                                   // class Titles
 #endif                               /* ifndef TITLES_H */
