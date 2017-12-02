@@ -57,11 +57,13 @@ class MazeController {
   Maze &getMaze() { return maze; }
 
   // Computes all solutions for the maze and fills solution with the map. Uses
-  // Dead-end Filling.
+  // Dead-end Filling. The maze passed in as solution will be populated with a
+  // filled maze except for EMPTY tiles along the solution's path.
   void solve() { solve(maze, solution); }
   void solve(const Maze &maze, Maze &solution);
   // Generates a maze using a Randomized Prim's Algorithm of the given
-  // dimensions.
+  // dimensions. Generated maze is placed into passed in maze reference if
+  // provided.
   void generate(unsigned int rows, unsigned int cols) {
     generate(rows, cols, maze);
   }

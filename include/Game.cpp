@@ -21,28 +21,31 @@ void GameController::Initialize(int /*argc*/, const char** /*argv[]*/) {
 
   // Add options to constant/unchanging menus.
   // Main Menu
-  menu_.addOption( Menu::MenuController::Option("Easy", &Callbacks::playEasy, true, true));
-  menu_.addOption( Menu::MenuController::Option("Medium", &Callbacks::playMedium));
+  resumeOptionIndex_ = menu_.getOptionList().size();
+  menu_.addOption(Menu::MenuController::Option("Resume", &Callbacks::playResume, false));
+  menu_.addOption(Menu::MenuController::Option( "----------", &Callbacks::nothing, false, false));
+  menu_.addOption(Menu::MenuController::Option("Easy", &Callbacks::playEasy, true, true));
+  menu_.addOption(Menu::MenuController::Option("Medium", &Callbacks::playMedium));
   menu_.addOption(Menu::MenuController::Option("Hard", &Callbacks::playHard));
-  menu_.addOption( Menu::MenuController::Option("Custom", &Callbacks::playCustom));
+  menu_.addOption(Menu::MenuController::Option("Custom", &Callbacks::playCustom));
   menu_.addOption(Menu::MenuController::Option( "----------", &Callbacks::nothing, false, false));
   saveOptionIndex_ = menu_.getOptionList().size();
-  menu_.addOption( Menu::MenuController::Option("Save Maze", &Callbacks::saveButton, false));
-  menu_.addOption( Menu::MenuController::Option("Load Maze", &Callbacks::loadButton));
+  menu_.addOption(Menu::MenuController::Option("Save Maze", &Callbacks::saveButton, false));
+  menu_.addOption(Menu::MenuController::Option("Load Maze", &Callbacks::loadButton));
   menu_.addOption(Menu::MenuController::Option( "----------", &Callbacks::nothing, false, false));
   menu_.addOption(Menu::MenuController::Option("Quit", &Callbacks::ExitApp_));
 
   // Custom Maze Menu
-  customMenu_.addOption( Menu::MenuController::Option("Rows:", &Callbacks::nothing, false, false));
+  customMenu_.addOption(Menu::MenuController::Option("Rows:", &Callbacks::nothing, false, false));
   rowOptionIndex_ = customMenu_.getOptionList().size();
-  customMenu_.addOption( Menu::MenuController::Option(20, &Callbacks::updateConfirm, true, true));
+  customMenu_.addOption(Menu::MenuController::Option(20, &Callbacks::updateConfirm, true, true));
   customMenu_.addOption(Menu::MenuController::Option( "Columns:", &Callbacks::nothing, false, false));
   colOptionIndex_ = customMenu_.getOptionList().size();
-  customMenu_.addOption( Menu::MenuController::Option(20, &Callbacks::updateConfirm));
+  customMenu_.addOption(Menu::MenuController::Option(20, &Callbacks::updateConfirm));
   confirmOptionIndex_ = customMenu_.getOptionList().size();
-  customMenu_.addOption( Menu::MenuController::Option("Confirm", &Callbacks::customButton));
+  customMenu_.addOption(Menu::MenuController::Option("Confirm", &Callbacks::customButton));
   customMenu_.addOption(Menu::MenuController::Option( "----------", &Callbacks::nothing, false, false));
-  customMenu_.addOption( Menu::MenuController::Option("Back", &Callbacks::closeSubMenu));
+  customMenu_.addOption(Menu::MenuController::Option("Back", &Callbacks::closeSubMenu));
 
   // Save Maze Menu
   vector<string> saveOptions;
@@ -55,9 +58,9 @@ void GameController::Initialize(int /*argc*/, const char** /*argv[]*/) {
   saveMenu_.addOption(Menu::MenuController::Option(true, true)) ->modifyableText = "MyMaze.dat";
   saveSettingsOptionIndex_ = saveMenu_.getOptionList().size();
   saveMenu_.addOption(Menu::MenuController::Option("Remove", saveOptions));
-  saveMenu_.addOption( Menu::MenuController::Option("Confirm", &Callbacks::filenameButton));
+  saveMenu_.addOption(Menu::MenuController::Option("Confirm", &Callbacks::filenameButton));
   saveMenu_.addOption(Menu::MenuController::Option( "----------", &Callbacks::nothing, false, false));
-  saveMenu_.addOption( Menu::MenuController::Option("Back", &Callbacks::closeSubMenu));
+  saveMenu_.addOption(Menu::MenuController::Option("Back", &Callbacks::closeSubMenu));
 
   // Handle execution interrupt.
   struct sigaction sigIntHandler;
@@ -82,6 +85,8 @@ void GameController::CheckPrevious() {
       } else {
         instance_.play();
         menu_.getOptionList()[saveOptionIndex_].isSelectable =
+            instance_.width() > 0;
+        menu_.getOptionList()[resumeOptionIndex_].isSelectable =
             instance_.width() > 0;
       }
     }

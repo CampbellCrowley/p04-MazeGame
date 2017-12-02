@@ -575,7 +575,7 @@ void MazeController::mergeNeighborAndFrontier(
 }
 
 void MazeController::solve(const Maze &maze, Maze &solution) {
-  if (isSolutionValid) return;
+  if (maze == this->maze && solution == this->solution && isSolutionValid) return;
   solution = maze;
   bool didSomething = false;
   do {

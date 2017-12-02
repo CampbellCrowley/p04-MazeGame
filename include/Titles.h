@@ -8,5 +8,5 @@ struct Titles {
   static const char* completeTitle;  // Maze Complete!
  private:
   Titles() {}
-};                                   // class Titles
-#endif                               /* ifndef TITLES_H */
+};     // class Titles
+#endif /* ifndef TITLES_H */

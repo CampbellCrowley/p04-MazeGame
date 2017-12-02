@@ -10,6 +10,8 @@ struct Callbacks {
   int playHard();
   // Chooses custom difficulty and opens menu to pick settings.
   int playCustom();
+  // Re-opens currently loaded maze.
+  int playResume();
   // Called when Confirm is chosen in custom menu, and begins the level with the
   // user inputted settings.
   int customButton();
@@ -33,5 +35,8 @@ struct Callbacks {
   // Terminate the entire program now.
   int ExitApp_();
   static int ExitApp();
+
+ private:
+  void updateMenuOptions();
 }; // struct Callbacks
 #endif /* ifndef CALLBACKS_H */

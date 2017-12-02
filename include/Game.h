@@ -34,6 +34,7 @@ class GameController {
   Menu::MenuController& SaveMenu() { return saveMenu_; }
   Menu::MenuController& CustomMenu() { return customMenu_; }
   Menu::MenuController& MainMenu() { return menu_; }
+  int ResumeOptionIndex() { return resumeOptionIndex_; }
   int SaveOptionIndex() { return saveOptionIndex_; }
   int SaveSettingsOptionIndex() { return saveSettingsOptionIndex_; }
   int RowOptionIndex() { return rowOptionIndex_; }
@@ -47,6 +48,7 @@ class GameController {
   Menu::MenuController saveMenu_;
   Menu::MenuController customMenu_;
   Menu::MenuController menu_;
+  int resumeOptionIndex_;
   int saveOptionIndex_;
   int saveSettingsOptionIndex_;
   int rowOptionIndex_;

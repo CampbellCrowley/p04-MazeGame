@@ -9,27 +9,35 @@ using namespace std;
 
 int Callbacks::playEasy() {
   game_.Instance().play(11, 11);
-  game_.MainMenu().getOptionList()[game_.SaveOptionIndex()].isSelectable =
-      game_.Instance().width() > 0;
+  updateMenuOptions();
   return 1;
 }
 int Callbacks::playMedium() {
   game_.Instance().play(51, 51);
-  game_.MainMenu().getOptionList()[game_.SaveOptionIndex()].isSelectable =
-      game_.Instance().width() > 0;
+  updateMenuOptions();
   return 1;
 }
 int Callbacks::playHard() {
   game_.Instance().play(101, 101);
-  game_.MainMenu().getOptionList()[game_.SaveOptionIndex()].isSelectable =
-      game_.Instance().width() > 0;
+  updateMenuOptions();
   return 1;
 }
 int Callbacks::playCustom() {
   game_.CustomMenu().startMenu();
-  game_.MainMenu().getOptionList()[game_.SaveOptionIndex()].isSelectable =
-      game_.Instance().width() > 0;
+  updateMenuOptions();
   return 1;
+}
+int Callbacks::playResume() {
+  game_.Instance().play();
+  updateMenuOptions();
+  return 1;
+}
+void Callbacks::updateMenuOptions() {
+  bool mazeExists = game_.Instance().width() > 0;
+  game_.MainMenu().getOptionList()[game_.SaveOptionIndex()].isSelectable =
+      mazeExists;
+  game_.MainMenu().getOptionList()[game_.ResumeOptionIndex()].isSelectable =
+      mazeExists;
 }
 int Callbacks::customButton() {
   const int rows =
@@ -74,7 +82,6 @@ int Callbacks::filenameButton() {
         }
       }
     }
-    game_.Instance().getMaze();
   }
   if (game_.Instance().save((Game::savesDir +
                              game_.SaveMenu()
@@ -127,8 +134,7 @@ int Callbacks::loadMaze() {
                .text())
               .c_str())) {
     game_.Instance().play();
-    game_.MainMenu().getOptionList()[game_.SaveOptionIndex()].isSelectable =
-        game_.Instance().width() > 0;
+    updateMenuOptions();
     return Callbacks::closeSubMenu();
   } else {
     return 0;
