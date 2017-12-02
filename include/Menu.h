@@ -2,7 +2,13 @@
 #define MENU_H
 #include <sstream>
 #include <vector>
+
+// Uncomment this if you wish to disable callbacks entirely.
+//#define NO_CALLBACKS
+
+#ifndef NO_CALLBACKS
 #include "Callbacks.h"
+#endif
 
 namespace Menu {
 // Available inputs.
@@ -29,6 +35,7 @@ class MenuController {
   // TODO: Move all options to inheritable classes.
   // Shows selectable option with title and callback.
   struct Option {
+#ifndef NO_CALLBACKS
     typedef int (Callbacks::*callback)();
     Option(const char* text_, callback selectAction,
            bool isSelectable = true, bool isHighlighted = false)
@@ -52,6 +59,7 @@ class MenuController {
       isList = false;
       isNumber = true;
     }
+#endif
     // Shows text input for entering a string. No callback, since everything is
     // managed internally.
     Option(bool isSelectable = true, bool isHighlighted = false)
@@ -100,8 +108,10 @@ class MenuController {
     std::vector<std::string> values;
     unsigned int currentValue;
 
+#ifndef NO_CALLBACKS
     // The function to call when the button is selected. Not used in text input.
     callback selectAction;
+#endif
     // Whether or not the option can be selected.
     bool isSelectable;
     // If the option is highlighted.
@@ -166,7 +176,9 @@ class MenuController {
   // Get text input via curses screen.
   std::string getString() const;
 
+#ifndef NO_CALLBACKS
   Callbacks callbacks_;
+#endif
 }; // class Menu
 } // namespace Menu
 

@@ -168,6 +168,7 @@ bool MenuController::move(Input direction) {
         return false;
       } else {
         closeMenu();
+#ifndef NO_CALLBACKS
         switch ((callbacks_.*optionList[currentIndex].selectAction)()) {
           case 0:
             openMenu();
@@ -182,11 +183,15 @@ bool MenuController::move(Input direction) {
             openMenu();
             return false;
         }
+#else
+        throw "Callbacks are disabled yet you still attempt to use one!\n";
+#endif
       }
     case LEFT:
     case RIGHT:
       if (optionList[currentIndex].isNumber) {
         optionList[currentIndex].number += direction == LEFT ? -1 : 1;
+#ifndef NO_CALLBACKS
         switch ((callbacks_.*optionList[currentIndex].selectAction)()) {
           case 100:
             closeMenu();
@@ -200,6 +205,9 @@ bool MenuController::move(Input direction) {
           default:
             return true;
         }
+#else
+        throw "Callbacks are disabled yet you still attempt to use one!\n";
+#endif
       } else if (optionList[currentIndex].isList) {
         if ((optionList[currentIndex].currentValue >=
                  optionList[currentIndex].values.size() - 1 &&
