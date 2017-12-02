@@ -40,7 +40,7 @@ Prints the menu to the NCurses screen via `addstr()`, and `addch()`. Input is re
   2) Via `getch()` with `nocbreak` and `echo` set, for inputting user typed strings in this case for typing a filename.
 
 ### [CampbellLib.cc](/include/CampbellLib/CampbellLib.cc) lines [79-83](/include/CampbellLib/CampbellLib.cc#L79-L83)  
-Input is received using `getline()` in cconjunction with `cin` to ensure the whole line is inputted and no trailing characters are left to create unwanted behaviour in the future.
+Input is received using `getline()` in conjunction with `cin` to ensure the whole line is inputted and no trailing characters are left to create unwanted behaviour in the future.
 
 ## Control Flow
 ### [Game.cpp](/include/Game.cpp) lines [71-87](/include/Game.cpp#L71-L87)  
@@ -115,7 +115,7 @@ The `Maze::MazeController` class is declared here. Stores everything a maze woul
 Everything pertaining to a self-contained menu is declared here in `Menu::MenuController`.
 
 ### [Game.h](/include/Game.h) lines [16-61](/include/Game.h#L16-L61)  
-The overarching class that controls the entirity of the program is declared here in `Game::GameController`.
+The overarching class that controls the entirety of the program is declared here in `Game::GameController`.
 
 ### [Callbacks.h](/include/Callbacks.h) lines [4-36](/include/Callbacks.h#L4-L36)  
 All menu button callbacks are declared here in `Callbacks`.
