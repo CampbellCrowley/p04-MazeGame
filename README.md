@@ -122,6 +122,9 @@ The overarching class that controls the entirety of the program is declared here
 ### [Callbacks.h] lines [4-36](/include/Callbacks.h#L4-L36)  
 All menu button callbacks are declared here in `Callbacks`.
 
+### [CampbellLib.h] lines [44-58](/include/CampbellLib/CampbellLib.h#L44-L58)  
+`Campbell::Strings` is declared here, and contains helper-functions pertaining to strings.
+
 [Game.cpp]: /include/Game.cpp
 [Game.h]: /include/Game.h
 [Menu.cpp]: /include/Menu.cpp
