@@ -2,7 +2,6 @@
 #include <cstdlib>
 #include <string>
 #include <vector>
-#include "Common.h"
 #include "Game.h"
 
 using namespace std;

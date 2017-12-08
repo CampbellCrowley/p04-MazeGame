@@ -10,6 +10,12 @@
 #include "Menu.h"
 
 namespace Game {
+class GameController;
+}
+
+extern Game::GameController game_;
+
+namespace Game {
 
 static const char* savesDir = "./saves/";
 
@@ -31,6 +37,7 @@ class GameController {
     colOptionIndex_ = 0;
     confirmOptionIndex_ = 0;
     filenameOptionIndex_ = 0;
+    game_ = *this;
   }
 
   // TODO: Remove getters? Can't return const, must return reference.
