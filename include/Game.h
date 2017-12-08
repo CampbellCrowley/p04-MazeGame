@@ -13,11 +13,15 @@ namespace Game {
 
 static const char* savesDir = "./saves/";
 
+// TODO: Find better way than storing option indexes for each option. Pointers
+// didn't work due to poor implementation?
 class GameController {
  public:
   void Initialize(int /*argc*/, const char** /*argv[]*/);
   // Check for previous session data.
+  // TODO: Better feedback on fail.
   void CheckPrevious();
+  // Run the game. Blocks until complete.
   int Run();
 
   GameController() {
@@ -29,6 +33,7 @@ class GameController {
     filenameOptionIndex_ = 0;
   }
 
+  // TODO: Remove getters? Can't return const, must return reference.
   Maze::MazeController& Instance() { return instance_; }
   Menu::MenuController& LoadMenu() { return loadMenu_; }
   Menu::MenuController& SaveMenu() { return saveMenu_; }

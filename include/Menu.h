@@ -17,6 +17,9 @@ enum Colors {
   ERROR,
   DISABLED
 };
+// TODO: Find solution for when the window is too small to fit all options.
+// TODO: Allow for 2D menu. Not just a list.
+// TODO: Allow Callbacks to be from any class.
 class MenuController {
  public:
   MenuController(const char* title = "") : title(title) {

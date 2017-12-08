@@ -6,6 +6,7 @@
 namespace Maze {
 static const char *lastSessionFilename = "saves/lastsession.dat";
 // Data that defines the maze and the characters to read from a file.
+// TODO: Move TileData to a class with color and character as member variables.
 enum TileData {
   EMPTY = 'E',
   WALL = 'W',
@@ -29,6 +30,7 @@ enum TileColor {
 };
 // Available movement directions and general controls.
 enum Direction { UP, DOWN, LEFT, RIGHT, NONE, EXIT, HELP, SOLVE };
+// TODO: Do not assume maze is rectangular. Allow for any shape.
 class MazeController {
  public:
   // Make typing a little easier.
@@ -59,11 +61,14 @@ class MazeController {
   // Computes all solutions for the maze and fills solution with the map. Uses
   // Dead-end Filling. The maze passed in as solution will be populated with a
   // filled maze except for EMPTY tiles along the solution's path.
+  // TODO: Show loading screen for large mazes.
   void solve() { solve(maze, solution); }
   void solve(const Maze &maze, Maze &solution);
   // Generates a maze using a Randomized Prim's Algorithm of the given
   // dimensions. Generated maze is placed into passed in maze reference if
   // provided.
+  // TODO: Support start and end points at other locations besides just top and
+  // bottom.
   void generate(unsigned int rows, unsigned int cols) {
     generate(rows, cols, maze);
   }
@@ -72,8 +77,9 @@ class MazeController {
   void print(int cols = 0, int rows = 0) { print(cols, rows, maze); }
   void print(int cols, int rows, const Maze &maze);
   // If the player is in the maze exit.
+  // TODO: Persist state if user goes into god-mode.
   bool isComplete() const;
-  // If the NCurses window is open.
+  // If we think the NCurses window is open.
   bool isWinOpen() const { return isWinOpen_; }
   // Move the player in a direction. Returns if the player actually moved.
   bool move(Direction dir, bool godMode = false);
@@ -147,12 +153,15 @@ class MazeController {
                                 const std::vector<int> &neighbor);
 
   // Current coordinates of player from top left of grid.
+  // TODO: Add get and set functions.
   unsigned int current_x, current_y;
   // The loaded maze.
   Maze maze;
   // The solution to the loaded maze.
+  // TODO: Add get function.
   Maze solution;
   // Whether the solution is still correct for this maze.
+  // TODO: Add get function.
   bool isSolutionValid;
   // The previously inputted screen dimensions.
   unsigned int lastCols;

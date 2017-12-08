@@ -32,13 +32,6 @@ int Callbacks::playResume() {
   updateMenuOptions();
   return 1;
 }
-void Callbacks::updateMenuOptions() {
-  bool mazeExists = game_.Instance().width() > 0;
-  game_.MainMenu().getOptionList()[game_.SaveOptionIndex()].isSelectable =
-      mazeExists;
-  game_.MainMenu().getOptionList()[game_.ResumeOptionIndex()].isSelectable =
-      mazeExists;
-}
 int Callbacks::customButton() {
   const int rows =
       game_.CustomMenu().getOptionList()[game_.RowOptionIndex()].number;
@@ -103,12 +96,13 @@ int Callbacks::loadButton() {
     const string file_name = ent->d_name;
     const string full_file_name = (string)Game::savesDir + "/" + file_name;
 
+    // Ignore hidden files.
     if (file_name[0] == '.') continue;
 
     if (stat(full_file_name.c_str(), &st) == -1) continue;
 
+    // Ignore directories.
     const bool is_directory = (st.st_mode & S_IFDIR) != 0;
-
     if (is_directory) continue;
 
     saveFiles.push_back(file_name);
@@ -156,4 +150,12 @@ int Callbacks::ExitApp() {
   endwin();
   exit(0);
   return 0;
+}
+
+void Callbacks::updateMenuOptions() {
+  bool mazeExists = game_.Instance().width() > 0;
+  game_.MainMenu().getOptionList()[game_.SaveOptionIndex()].isSelectable =
+      mazeExists;
+  game_.MainMenu().getOptionList()[game_.ResumeOptionIndex()].isSelectable =
+      mazeExists;
 }

@@ -3,7 +3,6 @@
 #include <vector>
 #include "Callbacks.h"
 #include "CampbellLib/CampbellLib.h"
-#include "Common.h"
 #include "Maze.h"
 #include "Menu.h"
 #include "Titles.h"
@@ -99,7 +98,8 @@ int GameController::Run() {
     menu_.startMenu();
   } catch (...) {
     endwin();
-    cerr << "Exiting due to unknown failure.\n";
+    cerr << Campbell::Color::red << "Exiting due to unknown failure.\n"
+         << Campbell::Color::reset;
     return 1;
   }
   return 0;

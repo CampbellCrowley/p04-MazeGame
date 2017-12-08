@@ -57,10 +57,12 @@ void MazeController::play(int generateRows, int generateCols) {
   }
 
   Direction nextDirection = NONE;
+  // Stores whether the player has completed the maze, and should now go into
+  // godMode.
+  bool justFinished = true;
   getmaxyx(stdscr, height, width);
   clear();
   print(width, height);
-  bool justFinished = true;
   while (nextDirection != EXIT && isWinOpen()) {
     nextDirection = getMoveDirection();
     getmaxyx(stdscr, height, width);
@@ -71,7 +73,7 @@ void MazeController::play(int generateRows, int generateCols) {
     }
     if (isComplete() && justFinished) {
       justFinished = false;
-      move(SOLVE);
+      MazeController::move(SOLVE);
       print(width, height);
       usleep(100000);
       wattron(stdscr, COLOR_PAIR(10));
@@ -114,6 +116,7 @@ bool MazeController::load(const char *filename) {
           current_x = i;
           current_y = height() - 1;
           newTile = EMPTY;
+          hasCurrent = true;
         }
         maze[height() - 1].push_back(newTile);
       }
@@ -166,6 +169,8 @@ void MazeController::print(int cols, int rows, const Maze &maze) {
   lastRows = rows;
   int start_x = 0;
   int start_y = 0;
+  // If the maze is larger than the screen, shift the maze to center the current
+  // position on the screen.
   if (height() > (unsigned)rows) {
     start_y = current_y - rows / 2;
     if (start_y < 0) start_y = 0;
@@ -455,6 +460,7 @@ void MazeController::generate(unsigned int rows, unsigned int cols,
 std::vector<int> MazeController::pickRandomNeighbor(
     const std::vector<int> &coords) const {
   std::vector<int> selection;
+  // TODO: 4 bools is excessive. Use int or bits instead.
   bool left = false, right = false, up = false, down = false;
   TileData mazeCoord;
   while (selection.size() == 0 && (!up || !down || !left || !right)) {

@@ -7,7 +7,6 @@ void MenuController::startMenu() {
   while (nextInput != QUIT && isWinOpen_) {
     nextInput = getInput();
     if (move(nextInput)) printMenu();
-    if (!isWinOpen_) break;
   }
 }
 void MenuController::openMenu() {
@@ -29,6 +28,7 @@ void MenuController::printMenu() const {
   startPos += 2;
   for (int i = 0; i < (int)optionList.size(); ++i) {
     ::move(startPos + i, 0);
+    // TODO: Move if statements into helper-function.
     if (optionList[i].isHighlighted) {
       setColor(HIGHLIGHTED);
       addch(' ');
@@ -63,23 +63,23 @@ void MenuController::printMenu() const {
     }
   }
   setColor(INSTRUCTIONS);
-  ::move(startPos, 40);
+  ::move(startPos++, 40);
   addstr("Controls:");
-  ::move(startPos+1, 40);
+  ::move(startPos++, 40);
   addstr("UP:      K or \u2191 (Up arrow)");
-  ::move(startPos+2, 40);
+  ::move(startPos++, 40);
   addstr("DOWN:    J or \u2193 (Down arrow)");
-  ::move(startPos+3, 40);
+  ::move(startPos++, 40);
   addstr("LEFT:    H or \u2191 (Left arrow)");
-  ::move(startPos+4, 40);
+  ::move(startPos++, 40);
   addstr("RIGHT:   L or \u2192 (Right arrow)");
-  ::move(startPos+5, 40);
+  ::move(startPos++, 40);
   addstr("SELECT:  Enter or HINT or GIVE UP");
-  ::move(startPos+6, 40);
+  ::move(startPos++, 40);
   addstr("HINT:    \"");
-  ::move(startPos+7, 40);
+  ::move(startPos++, 40);
   addstr("GIVE UP: ?");
-  ::move(startPos+8, 40);
+  ::move(startPos++, 40);
   addstr("QUIT:    Q");
   unsetColor(INSTRUCTIONS);
   ::move(cursorPos, 0);
